@@ -117,63 +117,18 @@ Hasl.BoardHex = function(config, graphNode, messageLayer) {
     });
     
     this.on('mouseout', function() { 
-        var layer = this.getLayer();
-        var hex = this.get("#"+this.hexId)[0];
-        this.resetHexDefaults(hex);
-        while(clickedHexs.length)
-        {
-            this.resetHexDefaults(clickedHexs.pop());
-        }
-            
-        layer.draw();
+        selectionGroup.removeChildren();
         writeMessage(messageLayer, this.hexId + " <mouseout>"); 
     });
     this.on('mousemove', function() {
-        selectionGroup.removeChildren();
-        
         var hex = this.get("#"+this.hexId)[0];
         selectionGroup.add(this.createSelectionHex(hex));
         var pos = this.getAbsolutePosition();
         selectionGroup.setAbsolutePosition(pos.x, pos.y);
         selectionLayer.draw();
-        //        var mousePos = stage.getMousePosition();
-        //        var x = mousePos.x - 190;
-        //        var y = mousePos.y - 40;
         writeMessage(messageLayer, this.hexId + " <hover>");
     });
-    this.on("mousedown touchstart", function() 
-    {
-        var layer = this.getLayer();
-        // do a distance calc to all other hexes
-        writeMessage(messageLayer, this.hexNode.id  + " <click>"); 
-        
-        selectionGroup.removeChildren();
-        
-        var node = this.hexNode;
-        var hex = this.get("#"+this.hexId)[0];
-        selectionGroup.add(this.createSelectionHex(hex));
-        for(var i=0; i < node.edges.length; i++)
-        {
-            var adjacentHexId = node.edges[i].target.id;
-            // TODO: fix this in edge factory!
-            if(adjacentHexId == this.hexId)
-            {
-                adjacentHexId = node.edges[i].source.id;
-            }
-            var adjacentHex = layer.get(".hex"+adjacentHexId)[0];
-            if(adjacentHex)
-            {
-                selectionGroup.add(adjacentHex);
-                clickedHexs.push(adjacentHex);
-            }
-            else
-            {
-                console.log("ERROR: could not find hex: "+adjacentHexId);
-            }
-        }
-        selectionLayer.draw();
-    //layer.draw();
-    });
+    
     this.add(hexagon);
     this.add(simpleText);
 };
@@ -201,6 +156,39 @@ Kinetic.Global.extend(Hasl.BoardHex, Kinetic.Group);
 function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
 {
     selectionGroup = new Kinetic.Group();
+    selectionGroup.on("mousedown touchstart", function() 
+    {
+        //var layer = this.getLayer();
+        // do a distance calc to all other hexes
+        writeMessage(messageLayer, this.hexNode.id  + " <click>"); 
+        
+//        selectionGroup.removeChildren();
+//        
+//        var node = this.hexNode;
+//        var hex = this.get("#"+this.hexId)[0];
+//        selectionGroup.add(this.createSelectionHex(hex));
+//        for(var i=0; i < node.edges.length; i++)
+//        {
+//            var adjacentHexId = node.edges[i].target.id;
+//            // TODO: fix this in edge factory!
+//            if(adjacentHexId == this.hexId)
+//            {
+//                adjacentHexId = node.edges[i].source.id;
+//            }
+//            var adjacentHex = layer.get(".hex"+adjacentHexId)[0];
+//            if(adjacentHex)
+//            {
+//                selectionGroup.add(adjacentHex);
+//                clickedHexs.push(adjacentHex);
+//            }
+//            else
+//            {
+//                console.log("ERROR: could not find hex: "+adjacentHexId);
+//            }
+//        }
+//        selectionLayer.draw();
+    //layer.draw();
+    });
     selectionLayer.add(selectionGroup);
     
     var y = 60;
