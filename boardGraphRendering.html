@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <style>
+            body {
+                margin: 0px;
+                padding: 0px;
+            }
+            canvas {
+                border: 1px solid #9C9898;
+            }
+        </style>
+        <script src="./js/dracula/jquery-1.4.2.min.js"></script>
+        <!--  The Raphael JavaScript library for vector graphics display  -->
+        <script src="./js/kineticJS/kinetic-v4.0.1.js"></script>
+
+        <!--  The Raphael JavaScript library for vector graphics display  -->
+        <script src="./js/dracula/raphael-min.js"></script>
+        <!--  Dracula  -->
+        <!--  An extension of Raphael for connecting shapes -->
+        <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
+        <!--  Graphs  -->
+        <script src="./js/dracula/dracula_graph.js"></script>
+        <script src="./js/dracula/dracula_algorithms.js"></script>
+        <script src="./js/boardGraph.js"></script>
+        <script src="./js/boardSetup.js"></script>
+        <script>
+            var stage;
+            var selectionLayer = new Kinetic.Layer();
+            
+            function writeMessage(messageLayer, message) {
+                var context = messageLayer.getContext();
+                messageLayer.clear();
+                context.font = "18pt Calibri";
+                context.fillStyle = "black";
+                context.align = "right";
+                context.fillText(message, stage.getWidth()-180, 25);
+            }
+
+            window.onload = function() {
+                stage = new Kinetic.Stage({
+                    container: "container",
+                    width: 800,
+                    height: 600
+                });
+                var messageLayer = new Kinetic.Layer();
+                var layer = new Kinetic.Layer();
+
+                var bg = new BoardGraph();
+                drawBoard(bg, layer, messageLayer);
+                //                createBoard(layer, messageLayer)
+		
+                // add the layer to the stage
+                stage.add(layer);
+                stage.add(selectionLayer);
+                stage.add(messageLayer);
+
+                stage.setScale(0.75,0.75);
+                stage.draw();
+            };
+
+        </script>
+    </head>
+    <body>
+        <div id="container"></div>
+    </body>
+</html>
