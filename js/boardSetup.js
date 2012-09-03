@@ -76,7 +76,7 @@ Hasl.BoardGraph = function()
     }
 };
 
-Hasl.BoardHex = function(config, graphNode, messageLayer) {
+Hasl.BoardHex = function(config, graphNode) {
     Kinetic.Group.call(this, config);
     
     this.hexNode = graphNode; /*from our boardGraph*/
@@ -118,7 +118,6 @@ Hasl.BoardHex = function(config, graphNode, messageLayer) {
     
     this.on('mouseout', function() { 
         selectionGroup.removeChildren();
-        writeMessage(messageLayer, this.hexId + " <mouseout>"); 
     });
     this.on('mousemove', function() {
         var hex = this.get("#"+this.hexId)[0];
@@ -126,7 +125,6 @@ Hasl.BoardHex = function(config, graphNode, messageLayer) {
         var pos = this.getAbsolutePosition();
         selectionGroup.setAbsolutePosition(pos.x, pos.y);
         selectionLayer.draw();
-        writeMessage(messageLayer, this.hexId + " <hover>");
     });
     
     this.add(hexagon);
