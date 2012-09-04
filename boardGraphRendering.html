@@ -29,6 +29,7 @@
         <script>
             var stage;
             var selectionLayer = new Kinetic.Layer();
+            var boardGraph;
             
             function writeMessage(messageLayer, message) {
                 var context = messageLayer.getContext();
@@ -42,14 +43,14 @@
             window.onload = function() {
                 stage = new Kinetic.Stage({
                     container: "container",
-                    width: 800,
+                    width: $(document).width(),
                     height: 600
                 });
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
 
-                var bg = new Hasl.BoardGraph();
-                drawBoard(bg, layer, messageLayer);
+                boardGraph = new Hasl.BoardGraph();
+                drawBoard(boardGraph, layer, messageLayer);
                 //                createBoard(layer, messageLayer)
 		
                 // add the layer to the stage
@@ -59,11 +60,70 @@
 
                 stage.setScale(0.75,0.75);
                 stage.draw();
+                
+                 $("#graph").hide();
             };
+        
+        function renderGraph()
+        {
+            $("#graph").show();
+            $("#showGraph").hide();
+            
+            var width = $(document).width();
+            var height = $(document).height() - 100;
+
+            var render = function(r, n) {
+                /* the Raphael set is obligatory, containing all you want to display */
+                var set = r.set().push(
+                /* custom objects go here */
+                r.rect(n.point[0]-30, n.point[1]-13, 60, 44).attr({"fill": "#feb", r : "12px", "stroke-width" : n.distance == 0 ? "3px" : "1px" })).push(
+                r.text(n.point[0], n.point[1] + 10, (n.label || n.id) + "\n(" + (n.distance == undefined ? "Infinity" : n.distance) + ")"));
+                return set;
+            };
+    
+            /* layout the graph using the Spring layout implementation */
+            var layouter = new Graph.Layout.Spring(boardGraph.graph);
+    
+            /* draw the graph using the RaphaelJS draw implementation */
+
+            /* calculating the shortest paths via Bellman Ford */
+            //    bellman_ford(g, g.nodes["Berlin"]);
+    
+            /* calculating the shortest paths via Dijkstra */
+            dijkstra(boardGraph.graph, boardGraph.graph.nodes["A1"]);
+    
+            /* calculating the shortest paths via Floyd-Warshall */
+            //floyd_warshall(g, g.nodes["Berlin"]);
+
+
+            /* colourising the shortest paths and setting labels */
+            for(e in boardGraph.graph.edges) {
+                if(boardGraph.graph.edges[e].target.predecessor === boardGraph.graph.edges[e].source || boardGraph.graph.edges[e].source.predecessor === boardGraph.graph.edges[e].target) {
+                    boardGraph.graph.edges[e].style.stroke = "#bfa";
+                    boardGraph.graph.edges[e].style.fill = "#56f";
+                } else {
+                    boardGraph.graph.edges[e].style.stroke = "#aaa";
+                }
+            }
+    
+            var renderer = new Graph.Renderer.Raphael('canvas', boardGraph.graph, width, height);
+
+            redraw = function() {
+                layouter.layout();
+                renderer.draw();
+            };
+        };
 
         </script>
     </head>
     <body>
         <div id="container"></div>
+        <div id="debugGraph">
+            <button id="showGraph" onclick="renderGraph();">Show graph</button><br>
+            <div id="graph">
+                Graph look'n ugly? Hit <button id="redraw" onclick="redraw();">redraw</button>!<br>
+                <div id="canvas"></div>
+            </div>
+        </div>
     </body>
 </html>
