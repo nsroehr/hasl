@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" type="text/css" href="css/default.css" />
+        <script src="./js/dracula/jquery-1.4.2.min.js"></script>
+        <script src="./js/kineticJS/kinetic-v4.0.1.js"></script>
+        <script src="./js/dracula/raphael-min.js"></script>
+        <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
+        <script src="./js/dracula/dracula_graph.js"></script>
+        <!--<script src="./js/dracula/dracula_algorithms.js"></script>-->
+        <script src="./js/boardGraph.js"></script>
+        <script src="./js/boardSetup.js"></script>
+        <script src="./js/imageLoader.js"></script>
+        <script>
+            var stage;
+            var imageLoader = new Hasl.ImageLoader();
+            var selectionLayer = new Kinetic.Layer();
+            
+            var selectedUnit;
+            
+            var boardGraph;
+            
+            function writeMessage(messageLayer, message) {
+                var context = messageLayer.getContext();
+                messageLayer.clear();
+                context.font = "18pt Calibri";
+                context.fillStyle = "black";
+                context.align = "right";
+                context.fillText(message, stage.getWidth()-180, 25);
+            }
+
+            window.onload = function() {
+                stage = new Kinetic.Stage({
+                    container: "container",
+                    width: 1370,
+                    height: 600
+                });
+                imageLoader.loadImages();
+                
+                var messageLayer = new Kinetic.Layer();
+                var layer = new Kinetic.Layer();
+
+                boardGraph = new Hasl.BoardGraph();
+                drawBoard(boardGraph, layer, messageLayer);
+                
+                var unitLayer = new Kinetic.Layer();
+                drawUnits(unitLayer);
+
+                stage.add(layer);
+                stage.add(selectionLayer);
+                stage.add(messageLayer);
+                stage.add(unitLayer);
+
+                stage.setScale(0.75,0.75);
+                stage.draw();
+                
+            };
+            function drawUnits(unitLayer) 
+            {
+                // TODO: associate the unit positions with the BoardGraph
+                // TODO: convert unit position on BoardGraph to position on board (screen)
+                // we'll want to treat groups of units differently
+                addUnit(unitLayer, imageLoader.images.german_1_e_hs, 8, 8);
+                addUnit(unitLayer, imageLoader.images.german_1_e_hs, -4, -4);
+                addUnit(unitLayer, imageLoader.images.american_2_e_fs, 108, 60);
+            }
+            function addUnit(unitLayer, image, posX, posY)
+            {
+                var unit = new Kinetic.Image({
+                    width: 70,
+                    height: 70,
+                    strokeWidth: 4,
+                    offset: {x: -39, y: -39},
+                    x: posX,
+                    y: posY,
+                    image: image,
+                    stroke: "black"
+                });
+                // this should only be done for groups...
+                unit.on('mousemove', function() {
+                    document.body.style.cursor = "pointer";
+                    console.log(unit.index);
+                    unit.moveToTop(); 
+                    
+                    unitLayer.draw();
+                });
+                unit.on('click', function() {
+                    if(selectedUnit == unit)
+                    {
+                        selectedUnit.setStroke('black');
+                        selectedUnit = undefined;
+                    }
+                    else
+                    {
+                        selectedUnit = unit;
+                        selectedUnit.setStroke('red');
+                    }
+                });
+                unit.on('mouseout', function(){
+                   document.body.style.cursor = "default"; 
+                });
+                unitLayer.add(unit);
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container"></div>
+    </body>
+</html>

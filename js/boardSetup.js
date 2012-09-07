@@ -4,6 +4,7 @@ var alphas = new Array('A','B','C','D','E','F','G','H','I');
 // TODO: move these globals into an interface...
 var clickedHexs = new Array();
 var selectionGroup;
+var clickedGroup;
 
 var Hasl = {};
 Hasl.BoardGraph = function() 
@@ -88,12 +89,14 @@ Hasl.BoardHex = function(config, graphNode) {
     this.name = "name"+this.hexId;
     this.id = "group"+this.hexId;
     
+    var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
+    
     var hexagon = new Kinetic.RegularPolygon({
         x: 0, //stage.getWidth() / 2,
         y: 0, //stage.getHeight() / 2,
         sides: 6,
         radius: 70,
-        fill: "white",
+        fill: terrainColors[Math.floor((Math.random()*(terrainColors.length)))],
         stroke: "black",
         strokeWidth: 4,
         rotationDeg: 90,
@@ -149,7 +152,7 @@ function createSelectionHex() {
 }
 
 function createClickedHex() {
-    return new Kinetic.RegularPolygon({
+    var clickedHex = new Kinetic.RegularPolygon({
         x: 0,
         y: 0,
         sides: 6,
@@ -160,13 +163,16 @@ function createClickedHex() {
         rotationDeg: 90,
         opacity: .5
     });  
+    clickedHex.off('click mousemove mouseout');
+    return clickedHex;
 }
 
 // TODO: move this into a well defined interface
 function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
 {
     selectionGroup = new Kinetic.Group();
-
+    clickedGroup = new Kinetic.Group();
+    
     // TODO: unmagicify!
     var y = 60;
     var x = 105;
@@ -181,7 +187,10 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
         }
         for (var j=0; j<boardGraph.nodeArray2d[i].length; j++)
         {
-            var newHex = new Hasl.BoardHex({x: 75,  y:70}, boardGraph.nodeArray2d[i][j], messageLayer);
+            var newHex = new Hasl.BoardHex({
+                x: 75,  
+                y:70
+            }, boardGraph.nodeArray2d[i][j], messageLayer);
             newHex.move(xOffset, yOffset);
             layer.add(newHex);
             yOffset += y*2;
@@ -189,55 +198,30 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
         xOffset += x;
     }
 
-    selectionGroup.on("click", function(e) {
-        
-        
-        var hexId = selectionGroup.name;
-        var hex = stage.get("#"+hexId)[0];
-        if(hex)
+    selectionGroup.on("click", function() {
+        if(selectedUnit)
         {
-            var hexGroup = hex.getParent();
-            var node = hexGroup.hexNode;
-            
-            //selectionGroup.add(createClickedHex(hex));
-            var pos = hexGroup.getAbsolutePosition();
-            selectionGroup.setAbsolutePosition(pos.x, pos.y);
-            console.log('added clicked hex to ' + pos.x + ', ' + pos.y);
-            
-            console.log("Hex " + node.id + " parent(" + node.id + ") has " + node.edges.length + " edges.");
-            for(var i=0; i < node.edges.length; i++)
+            var hexId = selectionGroup.name;
+            var hex = stage.get("#"+hexId)[0];
+            if(hex)
             {
-                var adjacentHexId = node.edges[i].target.id;
-                // TODO: fix this in edge factory!
-                if(adjacentHexId == hexId)
-                {
-                    adjacentHexId = node.edges[i].source.id;
-                }
-                var adjacentHex = stage.get("#"+adjacentHexId)[0];
-                if(adjacentHex)
-                {
-                    var clickedAdjacentHex = createClickedHex(adjacentHex);
-                    var newPos = adjacentHex.getAbsolutePosition();
-                    clickedAdjacentHex.setAbsolutePosition(newPos.x-pos.x, newPos.y-pos.y);
-                    selectionGroup.add(clickedAdjacentHex);
-                    //pos = clickedAdjacentHex.getAbsolutePosition();
-                    //console.log('added clicked adjacent hex to ' + pos.x + ', ' + pos.y);
-                }
-                else
-                {
-                    console.log("ERROR: could not find hex: "+adjacentHexId);
-                }
+                var hexGroup = hex.getParent();
+                var pos = hexGroup.getAbsolutePosition();
+        
+                selectedUnit.setAbsolutePosition(pos.x-54, pos.y-52);
+                /* selectedUnit.transitionTo({
+                x: stage.getMousePosition().x+selectedUnit.getLayer().getAbsolutePosition().x,
+                y: stage.getMousePosition().y+selectedUnit.getLayer().getAbsolutePosition().y,
+                duration: 0.3,
+                easing: 'ease-in-out'
+            });*/
+                selectedUnit.getLayer().draw();
             }
         }
-        else
-        {
-            console.log("error " + hexId + " not found!");
-        }
-        console.log("Selection size: " + selectionGroup.getChildren().length);
-        selectionLayer.draw();
     });
     selectionGroup.on('mouseout', function() { 
         selectionGroup.removeChildren();
     });
     selectionLayer.add(selectionGroup);
+    selectionLayer.add(clickedGroup);
 }
