@@ -1,0 +1,7 @@
+HexBoard refinements
+ - terrain data (from database)
+ - adjacency lookups 
+ - range rings
+ 
+Units
+ - Add handling for "groups" and "grouped" movement

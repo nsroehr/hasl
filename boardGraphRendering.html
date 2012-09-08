@@ -42,10 +42,8 @@
                 var layer = new Kinetic.Layer();
 
                 boardGraph = new Hasl.BoardGraph();
-                drawBoard(boardGraph, layer, messageLayer);
-                //                createBoard(layer, messageLayer)
-		
-                // add the layer to the stage
+                drawBoard(boardGraph, layer, messageLayer, true);
+
                 stage.add(layer);
                 stage.add(selectionLayer);
                 stage.add(messageLayer);

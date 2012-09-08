@@ -13,9 +13,9 @@ Hasl.BoardGraph = function()
     this.nodeArray2d = new Array();
     
     // some made up data for the board rep.
-    var boardHeightInHexes = 6;
-    var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q');
-    
+    var boardHeightInHexes = 10;
+    var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z','AA','BB','CC','DD','EE','FF','GG');
+   
     this.graph.edgeFactory.build = function(source, target) 
     {
         var e = jQuery.extend(true, {}, this.template);
@@ -79,7 +79,7 @@ Hasl.BoardGraph = function()
     }
 };
 
-Hasl.BoardHex = function(config, graphNode) {
+Hasl.BoardHex = function(radius, config, graphNode, useFill) {
     Kinetic.Group.call(this, config);
     
     this.hexNode = graphNode; /*from our boardGraph*/
@@ -91,60 +91,69 @@ Hasl.BoardHex = function(config, graphNode) {
     
     var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
     
+    //var strokeWidth = 1;
     var hexagon = new Kinetic.RegularPolygon({
-        x: 0, //stage.getWidth() / 2,
-        y: 0, //stage.getHeight() / 2,
+        x: 0,
+        y: 0,
         sides: 6,
-        radius: 70,
-        fill: terrainColors[Math.floor((Math.random()*(terrainColors.length)))],
-        stroke: "black",
-        strokeWidth: 4,
+        radius: radius,
+        fill: "transparent",
         rotationDeg: 90,
         name: "hex"+this.hexId,
-        id: this.hexId
+        id: this.hexId,
+        offset: {
+            x: -radius, 
+            y: 0
+        }
     });    
+    this.add(hexagon);
         
-    var simpleText = new Kinetic.Text({
-        x: -70,
-        y: -70+12+4, //hexagon.y + hexagon.radius,
-        text: this.hexId,
-        fontSize: 12,
-        fontFamily: "Calibri",
-        textFill: "black",
-        align: "center",
-        width: 140,
-        name: "text"+this.hexId
-    });
-    
-   
+    if(useFill == true)
+    {
+        hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
+        hexagon.setStroke('black');
+        hexagon.setStrokeWidth('1');
+        
+        var simpleText = new Kinetic.Text({
+            x: -radius*2+5,
+            y: 0,
+            text: this.hexId,
+            fontSize: 8,
+            fontFamily: "Calibri",
+            textFill: 'black',
+            align: 'right',
+            width: radius*2,
+            name: "text"+this.hexId,
+            offset: {
+                x: 0, 
+                y: -8
+            }
+        });
+        this.add(simpleText);
+    }
+
     this.on('mousemove', function() {
         var hex = this.get("#"+this.hexId)[0];
-        selectionGroup.add(createSelectionHex(hex));
+        selectionGroup.add(createSelectionHex(radius));
         selectionGroup.id = "selection"+this.hexId;
         selectionGroup.name = this.hexId;
         var pos = this.getAbsolutePosition();
         selectionGroup.setAbsolutePosition(pos.x, pos.y);
         selectionLayer.draw();
     });
-    
-    this.add(hexagon);
-    this.add(simpleText);
 };
-Hasl.BoardHex.prototype.resetHexDefaults = function(hex) {
-    hex.setFill("white");
-    hex.setStrokeWidth(4);
-}
 Kinetic.Global.extend(Hasl.BoardHex, Kinetic.Group);
 
-function createSelectionHex() {
+function createSelectionHex(radius) {
+    var strokeWidth = 1;
     var selectionHexagon = new Kinetic.RegularPolygon({
-        x: 0,
+        x: -radius,
         y: 0,
         sides: 6,
-        radius: 70,
+        radius: radius,
         fill: "orange",
         stroke: "black",
-        strokeWidth: 4,
+        strokeWidth: strokeWidth,
         rotationDeg: 90,
         opacity: .5
     });  
@@ -168,39 +177,49 @@ function createClickedHex() {
 }
 
 // TODO: move this into a well defined interface
-function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
+function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer, useFills)
 {
     selectionGroup = new Kinetic.Group();
     clickedGroup = new Kinetic.Group();
     
-    // TODO: unmagicify!
-    var y = 60;
-    var x = 105;
-    var yOffset = 0;
-    var xOffset = 0;
+    var radius = 37.5; //37.33333333;
+    var y = radius * Math.sin(2 *  2 * Math.PI / 6);
+    var x = radius * Math.cos(2 * Math.PI / 6);
+
+    x *= 2;
+    var xOffset = x; //x+xskip;
     for(var i=0; i<boardGraph.nodeArray2d.length; i++)
     {
-        yOffset = 0;
+        var yOffset = y;
         if((i+1) % 2 == 0) 
         {
             yOffset += y;
         }
         for (var j=0; j<boardGraph.nodeArray2d[i].length; j++)
         {
-            var newHex = new Hasl.BoardHex({
-                x: 75,  
-                y:70
-            }, boardGraph.nodeArray2d[i][j], messageLayer);
+            var newHex = new Hasl.BoardHex(
+                radius, 
+                {
+                    offset: {
+                        x: radius, 
+                        y: radius
+                    }
+                }, 
+                boardGraph.nodeArray2d[i][j],
+                messageLayer,
+                useFills
+                );
             newHex.move(xOffset, yOffset);
             layer.add(newHex);
-            yOffset += y*2;
+            yOffset += (y*2);
         }
-        xOffset += x;
+        xOffset += x+(x*0.5);
     }
 
     selectionGroup.on("click", function() {
         if(selectedUnit)
         {
+            var radius = 37.5;
             var hexId = selectionGroup.name;
             var hex = stage.get("#"+hexId)[0];
             if(hex)
@@ -208,13 +227,13 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer)
                 var hexGroup = hex.getParent();
                 var pos = hexGroup.getAbsolutePosition();
         
-                selectedUnit.setAbsolutePosition(pos.x-54, pos.y-52);
-                /* selectedUnit.transitionTo({
-                x: stage.getMousePosition().x+selectedUnit.getLayer().getAbsolutePosition().x,
-                y: stage.getMousePosition().y+selectedUnit.getLayer().getAbsolutePosition().y,
-                duration: 0.3,
-                easing: 'ease-in-out'
-            });*/
+                //selectedUnit.setAbsolutePosition(pos.x, pos.y);
+                selectedUnit.transitionTo({
+                    x: pos.x - radius*2,
+                    y: pos.y - radius,
+                    duration: 0.3,
+                    easing: 'ease-in-out'
+                });
                 selectedUnit.getLayer().draw();
             }
         }
