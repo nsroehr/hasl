@@ -61,16 +61,22 @@
                 stage.draw();
                 
             };
+            
+            // TODO: units should be stored in some sort of database
+            //       drawing should be just one aspect
+            //       additional data should appear on screen (context sensitive)
+            //       concerning movement, los, range, etc...
+            //       Obviously a unit object of some sort is necessary!
             function drawUnits(unitLayer) 
             {
                 // TODO: associate the unit positions with the BoardGraph
                 // TODO: convert unit position on BoardGraph to position on board (screen)
                 // we'll want to treat groups of units differently
-                addUnit(unitLayer, imageLoader.images.german_1_e_hs, 25, 34);
-                addUnit(unitLayer, imageLoader.images.german_1_e_hs, 20, 27);
-                addUnit(unitLayer, imageLoader.images.american_2_e_fs, 37.5*2, 60);
+                addUnit(unitLayer, imageLoader.sources.german_1_e_hs, imageLoader.images.german_1_e_hs, 25, 34);
+                addUnit(unitLayer, imageLoader.sources.german_1_e_hs, imageLoader.images.german_1_e_hs, 20, 27);
+                addUnit(unitLayer, imageLoader.sources.american_2_e_fs, imageLoader.images.american_2_e_fs, 37.5*2, 60);
             }
-            function addUnit(unitLayer, image, posX, posY)
+            function addUnit(unitLayer, source, image, posX, posY)
             {
                 var size = 36;
                 var halfSize = size * 0.5;
@@ -82,7 +88,8 @@
                     x: posX,
                     y: posY,
                     image: image,
-                    stroke: "black"
+                    stroke: "black",
+                    id: source
                 });
                 // this should only be done for groups...
                 unit.on('mousemove', function() {
@@ -96,31 +103,42 @@
                     {
                         selectedUnit.setStroke('black');
                     }
-                    
+                    var unitUnSelected = (selectedUnit == unit);
+                    if(unitUnSelected)
+                    {
+                        $('#info').hide();
+                        selectedUnit = undefined;
+                        return;
+                    }
                     selectedUnit = unit;
                     selectedUnit.setStroke('red');
                     unitLayer.draw();
+                    
+                    $('#info').empty();
+                    $('#info').append('<img src="' + unit.getId() + '" />');
+                    $('#info').show();
                 });
-                unit.on('mouseout', function(){
-                    document.body.style.cursor = "default"; 
-                });
-                unitLayer.add(unit);
-            }
-            function drawBoardImage(boardImageLayer)
-            {
-                var board_y = new Kinetic.Image({
-                    image: imageLoader.images.board_y,
-                    stroke: 'white',
-                    strokeWidth: 6,
-                    listening: false
-                });
-                var sizePair = new Utils.Pair(board_y.getWidth(), board_y.getHeight());
-                boardImageLayer.add(board_y);
-                return sizePair;
-            }
+            unit.on('mouseout', function(){
+                document.body.style.cursor = "default"; 
+            });
+            unitLayer.add(unit);
+        }
+        function drawBoardImage(boardImageLayer)
+        {
+            var board_y = new Kinetic.Image({
+                image: imageLoader.images.board_y,
+                stroke: 'white',
+                strokeWidth: 6,
+                listening: false
+            });
+            var sizePair = new Utils.Pair(board_y.getWidth(), board_y.getHeight());
+            boardImageLayer.add(board_y);
+            return sizePair;
+        }
         </script>
     </head>
     <body>
         <div id="container"></div>
+        <div id="info"></div>
     </body>
 </html>

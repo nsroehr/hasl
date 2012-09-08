@@ -208,7 +208,7 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer, useFills)
                 boardGraph.nodeArray2d[i][j],
                 messageLayer,
                 useFills
-                );
+            );
             newHex.move(xOffset, yOffset);
             layer.add(newHex);
             yOffset += (y*2);
