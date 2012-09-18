@@ -17,6 +17,7 @@
         <script src="./js/dracula/dracula_graph.js"></script>
         <script src="./js/dracula/dracula_algorithms.js"></script>
         <script src="./js/boardGraph.js"></script>
+        <script src="./js/terrain.js"></script>
         <script src="./js/boardSetup.js"></script>
         <script>
             var stage;
@@ -41,7 +42,10 @@
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
 
-                boardGraph = new Hasl.BoardGraph();
+                var terrainDatabases = new Hasl.TerrainDatabases();
+                var boardName = 'test';
+                var boardY = new Hasl.Board(boardName, 6, 3, terrainDatabases.getDatabase(boardName));
+                boardGraph = boardY.getBoardGraph(); //new Hasl.BoardGraph();
                 drawBoard(boardGraph, layer, messageLayer, true);
 
                 stage.add(layer);

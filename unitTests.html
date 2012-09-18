@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <script>
+            
+            window.onload = function() 
+            {
+                labelHexes();
+                createTerrainDatabase();
+            }
+
+            var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z');
+            function labelHexes()
+            {
+                var result = "<p>";
+                var numberOfTimesToUseLetterAsLabel = 1; // A vs AA vs AAA
+                var m = (alphas.length * 3);
+                var length = alphas.length;
+                for(var i=0; i < m; i++)
+                {
+                    var currentIndex = i % length;
+                    if(i / length == numberOfTimesToUseLetterAsLabel )
+                    {
+                        numberOfTimesToUseLetterAsLabel++;
+                        result += "</p><p>"
+                    }
+                    for(var repeats=0; repeats < numberOfTimesToUseLetterAsLabel; repeats++)
+                    {
+                        result += alphas[currentIndex];
+                    }
+                    result += "[" + i +"] ";
+                }
+                
+                document.getElementById('content').innerHTML = result;
+            }
+            
+            function findIndex(/*string*/alphaLabel)
+            {
+                
+            }
+            
+            /*
+             *  MF   = Movement Factors
+             *  FFMO = First Fire Movement in Open Ground 
+             *  TEM  = Terrain Effects Modifier
+             */
+            function Terrain(type, mf, ffmo, tem, losHinderance, isConcealment, isBypassable )
+            {
+                this.mType = type;
+                this.mMF   = mf;
+                this.mFFMO = ffmo;
+                this.mTEM  = tem;
+                this.mLOSHiderance = losHinderance;
+                this.mIsConcealment = isConcealment;
+                this.isBypassable = isBypassable;
+            }
+            
+            // TODO: do something about roads!
+            /*
+            function openGroundTerrain() { return new Terrain('Open Ground',     1, -1,  0,  0, false, false)};
+            function woodTerrain()       { return new Terrain('Wood',            2,  0,  1,  0,  true,  true)};
+            function brushTerrain()      { return new Terrain('Brush',           2,  0,  1,  0,  true, false)};
+            function woodenBuilding()    { return new Terrain('Wooden Building', 2,  0,  2,  0,  true,  true)};
+            function stoneBuilding()     { return new Terrain('Stone Building',  2,  0,  3,  0,  true,  true)};
+            function orchardTerrain()    { return new Terrain('Orchard',         1,  0,  0,  1,  true, false)};
+            function grainTerrain()      { return new Terrain('Grain',         1.5,  0,  0,  1,  true, false)};
+            */
+            //var hillTerrain = new Terrain('Hill', function(x) { return 2*x; }, 1, 0, false, false);
+            //var wallTerrain = new Terrain('Wall', function(x){ return x+1; }, 2, 0, false, false);
+            //var hedgeTerrain = new Terrain('Hedge', function(x){ return x+1; }, 1, 0, false, false);
+            var openGroundTerrain = new Terrain('Open Ground',  1, -1,  0,  0, false, false);
+            var woodsTerrain = new Terrain('Wood',               2,  0,  1,  0,  true,  true);
+            var brushTerrain = new Terrain('Brush',             2,  0,  1,  0,  true, false);
+            var woodenBuilding = new Terrain('Wooden Building', 2,  0,  2,  0,  true,  true);
+            var stoneBuilding = new Terrain('Stone Building',   2,  0,  3,  0,  true,  true);
+            var orchardTerrain = new Terrain('Orchard',         1,  0,  0,  1,  true, false);
+            var grainTerrain = new Terrain('Grain',           1.5,  0,  0,  1,  true, false);
+
+            var TerrainType = {
+                OpenGround : 0,
+                Woods      : 1,
+                Brush      : 2,
+                WoodBldg   : 3,
+                StoneBldg  : 4,
+                Orchard    : 5,
+                Grain      : 6
+            }
+            
+            function createTerrainDatabase()
+            {
+                var terrainDB = [ //new Array();
+                    // A1 - A10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // B0 - B10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // C1 - C10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.Orchard],
+                    // D0 - D10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.WoodBldg],
+                    [TerrainType.Orchard]
+                    [TerrainType.OpenGround],
+                    // E1 - E10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.Orchard],
+                    // F0 - F10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard]
+                    [TerrainType.OpenGround],
+                    // G1 - G10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // H0 - H10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard]
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // I1 - I10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // J0 - J10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // K1 - K10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    // L0 - L10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // M1 - M10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    // N0 - N10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // O1 - O10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.WoodBldg],
+                    // P0 - P10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // Q1 - Q10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // R0 - R10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // S1 - S10
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    // T0 - T10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // U1 - U10
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    // V0 - 10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // W1 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    // X0 - 10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // Y1 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // Z0 - 10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // AA1 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    // BB0 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.Grain],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.Orchard],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // CC1 - 10
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // DD0 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.WoodBldg],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // EE1 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.WoodBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // FF0 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.StoneBldg],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    // GG1 - 10
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround, TerrainType.Woods],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround],
+                    [TerrainType.OpenGround]
+                ];
+                console.log(terrainDB);   
+            }
+            
+        </script>
+    </head>
+    <body>
+        <div id="content"></div>
+    </body>
+</html>

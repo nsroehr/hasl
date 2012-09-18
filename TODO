@@ -1,7 +1,8 @@
 HexBoard refinements
  - terrain data (from database)
+   * need mechanism for 'looking up' terrain data
  - adjacency lookups 
  - range rings
  
 Units
- - Add handling for "groups" and "grouped" movement
+ - Add handling for stacks

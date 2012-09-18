@@ -6,15 +6,45 @@ var clickedHexs = new Array();
 var selectionGroup;
 var clickedGroup;
 
-var Hasl = {};
-Hasl.BoardGraph = function() 
+var Hasl = ( Hasl || {} );
+Hasl.Board = function(name, width, height, terrainDb)
 {
+    var mName = name; 
+    var mWidth = width;
+    var mHeight = height;
+    var mTerrainDatabase = terrainDb;
+    var mBoardGraph = new Hasl.BoardGraph(mTerrainDatabase, mWidth, mHeight);
+    
+    this.getSize = function() 
+    {
+        return new Utils.Pair(mWidth, mHeight);
+    }
+    this.getBoardName = function()
+    {
+        return mName;
+    }
+    this.getTerrainDatabase = function()
+    {
+        return mTerrainDatabase;
+    }
+    this.getBoardGraph = function()
+    {
+        return mBoardGraph;
+    }
+} 
+
+
+
+Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, height) 
+{
+    //console.log('creating new boardgraph: ' + width + ' * ' + height);
     this.graph = new Graph(); // using Dracula Graph Library
     this.nodeArray2d = new Array();
     
     // some made up data for the board rep.
-    var boardHeightInHexes = 10;
-    var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z','AA','BB','CC','DD','EE','FF','GG');
+    var boardHeightInHexes = height;
+    var boardWidthInHexes = width;
+    //var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z','AA','BB','CC','DD','EE','FF','GG');
    
     this.graph.edgeFactory.build = function(source, target) 
     {
@@ -25,29 +55,59 @@ Hasl.BoardGraph = function()
         e.style.label = e.weight = 1; //Math.floor(Math.random() * 10) + 1;
         
         if(!e.source.id || !e.target.id)
+        {
             console.log("adding edge from " + e.source.id + " to " + e.target.id);
-        
+        }
         return e;
     }
     
-    //    function createNodes() 
-    for(var alphaIndex=0; alphaIndex < alphas.length; alphaIndex++)
+    var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z');
+    var numberOfTimesToUseLetterAsLabel = 1; // A vs AA vs AAA
+    var length = alphas.length;
+    for(var i=0; i < boardWidthInHexes; i++)
     {
-        this.nodeArray2d[alphaIndex] = new Array();
-        for (var numIndex=1; numIndex <= boardHeightInHexes; numIndex++)
+        var alphaLabel = '';
+        var alphaIndex = i % length;
+        if(i / length == numberOfTimesToUseLetterAsLabel )
         {
-            var newNode = this.graph.addNode(alphas[alphaIndex] + numIndex.toString());
-            this.nodeArray2d[alphaIndex][numIndex-1] = newNode;
+            numberOfTimesToUseLetterAsLabel++;
+        }
+        for(var repeats=0; repeats < numberOfTimesToUseLetterAsLabel; repeats++)
+        {
+            alphaLabel += alphas[alphaIndex];
+        }
+        //console.log(i);
+        this.nodeArray2d[i] = new Array();
+
+        var numIndex = 0;
+        var onEvenHexColumn = (i % 2 == 0);
+        if(onEvenHexColumn)
+        {
+            numIndex = 1;
+        }
+        for(; numIndex < boardHeightInHexes+1; numIndex++)
+        {
+            var newNode = this.graph.addNode(alphaLabel + numIndex.toString());
+            //console.log(alphaLabel + numIndex.toString());
+            this.nodeArray2d[i][numIndex] = newNode;
         }
     }
     
+    // TODO: need to create directed graph (edges for all adjacencies...)
     //    function createEdges() 
-    var alphaSpan = this.nodeArray2d.length;
-    var numSpan = this.nodeArray2d[0].length;
+    var alphaSpan = boardWidthInHexes; // this.nodeArray2d.length;
+    var numSpan = boardHeightInHexes+1; //this.nodeArray2d[0].length;
     for(alphaIndex=0; alphaIndex < alphaSpan; alphaIndex++)
     {
-        for (numIndex=0; numIndex < numSpan; numIndex++)
+        numIndex = 0;
+        onEvenHexColumn = (alphaIndex % 2 == 0);
+        if(onEvenHexColumn)
         {
+            numIndex = 1;
+        }
+        for (; numIndex < numSpan; numIndex++)
+        {
+            //console.log('alphaIndex: ' + alphaIndex + ', numIndex: ' + numIndex);
             var currentHex = this.nodeArray2d[alphaIndex][numIndex].id;
 
             var notOnBottomEdge = ((numIndex+1) < boardHeightInHexes);
@@ -56,11 +116,17 @@ Hasl.BoardGraph = function()
                 var hexBelowCurrent = this.nodeArray2d[alphaIndex][numIndex+1].id;
                 this.graph.addEdge(currentHex, hexBelowCurrent);
             }
-            var notOnRightmostColumn = ((alphaIndex+1) < alphas.length);
+            
+            var notOnRightmostColumn = ((alphaIndex+1) < boardWidthInHexes);
+            //console.log('not rightmost? ' + (alphaIndex+1) + ' vs ' + boardWidthInHexes);
             if(notOnRightmostColumn)
             {
-                var hexNextColumnNext = this.nodeArray2d[alphaIndex+1][numIndex].id;
-                this.graph.addEdge(currentHex, hexNextColumnNext);
+                var notTopMostRow = (numIndex != 0);
+                if(notTopMostRow)
+                {
+                    var hexNextColumnNext = this.nodeArray2d[alphaIndex+1][numIndex].id;
+                    this.graph.addEdge(currentHex, hexNextColumnNext);
+                }
             
                 var isOddRow = ((alphaIndex+1) % 2 == 0);
                 if(isOddRow && notOnBottomEdge)
@@ -108,7 +174,7 @@ Hasl.BoardHex = function(radius, config, graphNode, useFill) {
     });    
     this.add(hexagon);
         
-    if(useFill == true)
+    if(useFill)
     {
         hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
         hexagon.setStroke('black');
@@ -133,7 +199,7 @@ Hasl.BoardHex = function(radius, config, graphNode, useFill) {
     }
 
     this.on('mousemove', function() {
-        var hex = this.get("#"+this.hexId)[0];
+        //var hex = this.get("#"+this.hexId)[0];
         selectionGroup.add(createSelectionHex(radius));
         selectionGroup.id = "selection"+this.hexId;
         selectionGroup.name = this.hexId;
@@ -193,25 +259,28 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer, useFills)
         var yOffset = y;
         if((i+1) % 2 == 0) 
         {
-            yOffset += y;
+            yOffset -= y;
         }
         for (var j=0; j<boardGraph.nodeArray2d[i].length; j++)
         {
-            var newHex = new Hasl.BoardHex(
-                radius, 
-                {
-                    offset: {
-                        x: radius, 
-                        y: radius
-                    }
-                }, 
-                boardGraph.nodeArray2d[i][j],
-                messageLayer,
-                useFills
-            );
-            newHex.move(xOffset, yOffset);
-            layer.add(newHex);
-            yOffset += (y*2);
+            if(boardGraph.nodeArray2d[i][j]) // != undefinded)
+            {
+                var newHex = new Hasl.BoardHex(
+                    radius, 
+                    {
+                        offset: {
+                            x: radius, 
+                            y: radius
+                        }
+                    }, 
+                    boardGraph.nodeArray2d[i][j],
+                    useFills
+                    );
+                newHex.move(xOffset, yOffset);
+                layer.add(newHex);
+                yOffset += (y*2);
+            }
+            
         }
         xOffset += x+(x*0.5);
     }

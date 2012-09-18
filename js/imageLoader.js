@@ -1,3 +1,4 @@
+var Hasl = ( Hasl || {} );
 Hasl.ImageLoader = function() {
     this.sources = {
         american_2_e_fs: "./assets/ame_2_e_fs.png",

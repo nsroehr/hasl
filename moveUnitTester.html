@@ -9,10 +9,12 @@
         <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
         <script src="./js/dracula/dracula_graph.js"></script>
         <script src="./js/boardGraph.js"></script>
+        <script src="./js/terrain.js"></script>
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
         <script src="./js/utils.js"></script>
         <script>
+            
             var stage;
             var imageLoader = new Hasl.ImageLoader();
             var selectionLayer = new Kinetic.Layer();
@@ -30,6 +32,7 @@
                 context.fillText(message, stage.getWidth()-180, 25);
             }
 
+            
             window.onload = function() {
                 stage = new Kinetic.Stage({
                     container: "container",
@@ -41,7 +44,10 @@
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
 
-                boardGraph = new Hasl.BoardGraph();
+                var terrainDatabases = new Hasl.TerrainDatabases();
+                var boardName = 'y';
+                var boardY = new Hasl.Board(boardName, 33, 10, terrainDatabases.getDatabase(boardName));
+                boardGraph = boardY.getBoardGraph(); //new Hasl.BoardGraph();
                 drawBoard(boardGraph, layer, messageLayer, false);
                 
                 var unitLayer = new Kinetic.Layer();
