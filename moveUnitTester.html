@@ -48,7 +48,7 @@
                 var boardName = 'y';
                 var boardY = new Hasl.Board(boardName, 33, 10, terrainDatabases.getDatabase(boardName));
                 boardGraph = boardY.getBoardGraph(); //new Hasl.BoardGraph();
-                drawBoard(boardGraph, layer, messageLayer, false);
+                drawBoard(boardGraph, layer, false);
                 
                 var unitLayer = new Kinetic.Layer();
                 drawUnits(unitLayer);

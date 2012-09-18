@@ -46,7 +46,7 @@
                 var boardName = 'test';
                 var boardY = new Hasl.Board(boardName, 6, 3, terrainDatabases.getDatabase(boardName));
                 boardGraph = boardY.getBoardGraph(); //new Hasl.BoardGraph();
-                drawBoard(boardGraph, layer, messageLayer, true);
+                drawBoard(boardGraph, layer, true);
 
                 stage.add(layer);
                 stage.add(selectionLayer);

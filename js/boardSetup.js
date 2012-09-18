@@ -145,7 +145,7 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, heig
     }
 };
 
-Hasl.BoardHex = function(radius, graphNode, useFill, config) {
+Hasl.BoardHex = function(config, radius, graphNode, useFill) {
     Kinetic.Group.call(this, config);
     
     this.hexNode = graphNode; // from our boardGraph
@@ -173,7 +173,7 @@ Hasl.BoardHex = function(radius, graphNode, useFill, config) {
     });    
     this.add(hexagon);
         
-    if(useFill === undefined)
+    if(useFill == true)
     {
         hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
         hexagon.setStroke('black');
@@ -265,15 +265,17 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
             if(boardGraph.nodeArray2d[i][j]) // != undefinded)
             {
                 var newHex = new Hasl.BoardHex(
-                    radius, 
-                    boardGraph.nodeArray2d[i][j],
-                    useFills,
                     {
                         offset: {
                             x: radius, 
                             y: radius
                         }
-                    }
+                    },
+                    radius, 
+                    boardGraph.nodeArray2d[i][j],
+                    useFills
+                    
+                    
                     );
                 newHex.move(xOffset, yOffset);
                 layer.add(newHex);
