@@ -145,10 +145,10 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, heig
     }
 };
 
-Hasl.BoardHex = function(radius, config, graphNode, useFill) {
+Hasl.BoardHex = function(radius, graphNode, useFill, config) {
     Kinetic.Group.call(this, config);
     
-    this.hexNode = graphNode; /*from our boardGraph*/
+    this.hexNode = graphNode; // from our boardGraph
     
     this.hexId = graphNode.id;
     
@@ -157,7 +157,6 @@ Hasl.BoardHex = function(radius, config, graphNode, useFill) {
     
     var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
     
-    //var strokeWidth = 1;
     var hexagon = new Kinetic.RegularPolygon({
         x: 0,
         y: 0,
@@ -174,7 +173,7 @@ Hasl.BoardHex = function(radius, config, graphNode, useFill) {
     });    
     this.add(hexagon);
         
-    if(useFill)
+    if(useFill === undefined)
     {
         hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
         hexagon.setStroke('black');
@@ -243,21 +242,21 @@ function createClickedHex() {
 }
 
 // TODO: move this into a well defined interface
-function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer, useFills)
+function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
 {
     selectionGroup = new Kinetic.Group();
     clickedGroup = new Kinetic.Group();
     
-    var radius = 37.5; //37.33333333;
-    var y = radius * Math.sin(2 *  2 * Math.PI / 6);
-    var x = radius * Math.cos(2 * Math.PI / 6);
+    var radius = 37.5; // measured from image
+    var y = radius * Math.sin(4 * (Math.PI / 6));
+    var x = radius;
 
-    x *= 2;
-    var xOffset = x; //x+xskip;
+    var xOffset = x;
     for(var i=0; i<boardGraph.nodeArray2d.length; i++)
     {
         var yOffset = y;
-        if((i+1) % 2 == 0) 
+        var isEvenHex = ((i+1) % 2 == 0);
+        if(isEvenHex)
         {
             yOffset -= y;
         }
@@ -267,18 +266,22 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, messageLayer, useFills)
             {
                 var newHex = new Hasl.BoardHex(
                     radius, 
+                    boardGraph.nodeArray2d[i][j],
+                    useFills,
                     {
                         offset: {
                             x: radius, 
                             y: radius
                         }
-                    }, 
-                    boardGraph.nodeArray2d[i][j],
-                    useFills
+                    }
                     );
                 newHex.move(xOffset, yOffset);
                 layer.add(newHex);
                 yOffset += (y*2);
+                if(j > 0)
+                {
+                    yOffset -= 1/j;
+                }
             }
             
         }
