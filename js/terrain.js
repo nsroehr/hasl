@@ -1,5 +1,5 @@
 var Hasl = ( Hasl || {} ); //Loose Augmentation (http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth)
-Hasl.Terrain = function(type, mf, ffmo, tem, losHinderance, isConcealment, isBypassable )
+Hasl.Terrain = function(type, mf, ffmo, tem, losHinderance, isConcealment, isBypassable)
 {
     this.mType = type;
     this.mMF   = mf;
@@ -7,19 +7,12 @@ Hasl.Terrain = function(type, mf, ffmo, tem, losHinderance, isConcealment, isByp
     this.mTEM  = tem;
     this.mLOSHiderance = losHinderance;
     this.mIsConcealment = isConcealment;
-    this.isBypassable = isBypassable;
+    this.mIsBypassable = isBypassable;
 };
       
 Hasl.TerrainDatabases = function()
 {
     // TODO: do something about roads!
-    var openGroundTerrain = new Hasl.Terrain('Open Ground',  1, -1,  0,  0, false, false);
-    var woodsTerrain = new Hasl.Terrain('Wood',               2,  0,  1,  0,  true,  true);
-    var brushTerrain = new Hasl.Terrain('Brush',             2,  0,  1,  0,  true, false);
-    var woodenBuilding = new Hasl.Terrain('Wooden Building', 2,  0,  2,  0,  true,  true);
-    var stoneBuilding = new Hasl.Terrain('Stone Building',   2,  0,  3,  0,  true,  true);
-    var orchardTerrain = new Hasl.Terrain('Orchard',         1,  0,  0,  1,  true, false);
-    var grainTerrain = new Hasl.Terrain('Grain',           1.5,  0,  0,  1,  true, false);
 //var hillTerrain = new Terrain('Hill', function(x) { return 2*x; }, 1, 0, false, false);
 //var wallTerrain = new Terrain('Wall', function(x){ return x+1; }, 2, 0, false, false);
 //var hedgeTerrain = new Terrain('Hedge', function(x){ return x+1; }, 1, 0, false, false);
@@ -44,24 +37,47 @@ Hasl.TerrainDatabases.prototype.getDatabase = function(boardName)
     return this.mTerrains[boardName];
 };
 
-Hasl.TerrainDatabases.prototype.getTerrainFromTerrainType = function(terrainType)
+function getTerrainFromTerrainType(terrainType) 
+{
+    //console.log(terrainType);
+    switch(terrainType)
+    {
+        case TerrainType.OpenGround:
+            return new Hasl.Terrain('Open Ground',     1, -1,  0,  0, false, false);
+        case TerrainType.Woods:
+            return new Hasl.Terrain('Wood',            2,  0,  1,  0,  true,  true);
+        case TerrainType.Brush:
+            return new Hasl.Terrain('Brush',           2,  0,  1,  0,  true, false);
+        case TerrainType.WoodBldg:
+            return new Hasl.Terrain('Wooden Building', 2,  0,  2,  0,  true,  true);
+        case TerrainType.StoneBldg:
+            return new Hasl.Terrain('Stone Building',  2,  0,  3,  0,  true,  true);
+        case TerrainType.Orchard:
+            return new Hasl.Terrain('Orchard',         1,  0,  0,  1,  true, false);
+        case TerrainType.Grain:
+            return new Hasl.Terrain('Grain',         1.5,  0,  0,  1,  true, false);
+    }
+    throw "invalid terrain type";
+}
+
+function getTerrainColor(terrainType)
 {
     switch(terrainType)
     {
         case TerrainType.OpenGround:
-            return openGroundTerrain;
+            return '#afbc6a';
         case TerrainType.Woods:
-            return woodsTerrain;
+            return '#2c2a16';
         case TerrainType.Brush:
-            return brushTerrain;
+            return '#abe068'
         case TerrainType.WoodBldg:
-            return woodenBuilding;
+            return '#cc9a60';
         case TerrainType.StoneBldg:
-            return stoneBuilding;
+            return '#919191';
         case TerrainType.Orchard:
-            return orchardTerrain;
+            return '#52622e';
         case TerrainType.Grain:
-            return grainTerrain;
+            return '#ffef6f';
     }
     throw "invalid terrain type";
 };
@@ -113,7 +129,7 @@ Hasl.TerrainDatabases.prototype.createTerrainForBoardY = function()
         [TerrainType.OpenGround, TerrainType.Woods],
         [TerrainType.OpenGround],
         [TerrainType.OpenGround, TerrainType.WoodBldg],
-        [TerrainType.Orchard]
+        [TerrainType.Orchard],
         [TerrainType.OpenGround],
         // E1 - E10
         [TerrainType.OpenGround],
@@ -136,7 +152,7 @@ Hasl.TerrainDatabases.prototype.createTerrainForBoardY = function()
         [TerrainType.OpenGround, TerrainType.Woods],
         [TerrainType.OpenGround, TerrainType.StoneBldg],
         [TerrainType.OpenGround],
-        [TerrainType.Orchard]
+        [TerrainType.Orchard],
         [TerrainType.OpenGround],
         // G1 - G10
         [TerrainType.OpenGround],
@@ -462,7 +478,7 @@ Hasl.TerrainDatabases.prototype.createTerrainForTestBoard = function()
         // B0-3
         [TerrainType.Orchard],
         [TerrainType.StoneBldg],
-        [TerrainType.WoodBldg],
+        [TerrainType.OpenGround, TerrainType.WoodBldg],
         [TerrainType.Woods],
         // C1-3
         [TerrainType.OpenGround],

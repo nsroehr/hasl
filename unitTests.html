@@ -8,6 +8,7 @@
             {
                 labelHexes();
                 createTerrainDatabase();
+                mod();
             }
 
             var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z');
@@ -33,6 +34,19 @@
                 }
                 
                 document.getElementById('content').innerHTML = result;
+            }
+            
+            function mod()
+            {
+                var someNum = 33;
+                var result = '<p>';
+                for(var i=0; i < someNum; i++)
+                {
+                    result += '[' + i + ']: ' + (i % 2) + '<br/>';
+                }
+                result += '</p>';
+                
+                document.getElementById('content2').innerHTML = result;
             }
             
             function findIndex(/*string*/alphaLabel)
@@ -477,5 +491,6 @@
     </head>
     <body>
         <div id="content"></div>
+        <div id="content2"></div>
     </body>
 </html>

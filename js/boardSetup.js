@@ -37,33 +37,34 @@ Hasl.Board = function(name, width, height, terrainDb)
 
 Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, height) 
 {
-    //console.log('creating new boardgraph: ' + width + ' * ' + height);
+//    console.log('creating new board ' + width +'*'+ height);
     this.graph = new Graph(); // using Dracula Graph Library
     this.nodeArray2d = new Array();
     
-    // some made up data for the board rep.
     var boardHeightInHexes = height;
     var boardWidthInHexes = width;
-    //var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z','AA','BB','CC','DD','EE','FF','GG');
    
     this.graph.edgeFactory.build = function(source, target) 
     {
         var e = jQuery.extend(true, {}, this.template);
         e.source = source;
         e.target = target;
-        e.directed = false;
-        e.style.label = e.weight = 1; //Math.floor(Math.random() * 10) + 1;
+        e.directed = true;
         
-        if(!e.source.id || !e.target.id)
-        {
-            console.log("adding edge from " + e.source.id + " to " + e.target.id);
-        }
+        var terrainDatabaseTypes = target.label;
+        
+//        console.log("adding edge from " + e.source.id + " to " + e.target.id);
+//        console.log(terrainDatabaseTypes);
+        var weight = getTerrainFromTerrainType(terrainDatabaseTypes[0]).mMF;
+        e.style.label = e.weight = weight;
+        
         return e;
     }
     
     var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z');
     var numberOfTimesToUseLetterAsLabel = 1; // A vs AA vs AAA
     var length = alphas.length;
+    var terrainOffset = 0;
     for(var i=0; i < boardWidthInHexes; i++)
     {
         var alphaLabel = '';
@@ -76,36 +77,23 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, heig
         {
             alphaLabel += alphas[alphaIndex];
         }
-        //console.log(i);
         this.nodeArray2d[i] = new Array();
-
-        var numIndex = 0;
-        var onEvenHexColumn = (i % 2 == 0);
-        if(onEvenHexColumn)
+        
+        for(var numIndex = ((i+1) % 2); numIndex < boardHeightInHexes+1; numIndex++)
         {
-            numIndex = 1;
-        }
-        for(; numIndex < boardHeightInHexes+1; numIndex++)
-        {
-            var newNode = this.graph.addNode(alphaLabel + numIndex.toString());
-            //console.log(alphaLabel + numIndex.toString());
+            var newNode = this.graph.addNode(alphaLabel + numIndex.toString(), { label : terrainDatabase[terrainOffset] });
+//            console.log('added node @: ' + alphaLabel + numIndex.toString() + ' tDB: ' + terrainOffset);
             this.nodeArray2d[i][numIndex] = newNode;
+            
+            terrainOffset++;
         }
     }
     
-    // TODO: need to create directed graph (edges for all adjacencies...)
-    //    function createEdges() 
-    var alphaSpan = boardWidthInHexes; // this.nodeArray2d.length;
-    var numSpan = boardHeightInHexes+1; //this.nodeArray2d[0].length;
+    var alphaSpan = boardWidthInHexes;
+    var numSpan = boardHeightInHexes+1;
     for(alphaIndex=0; alphaIndex < alphaSpan; alphaIndex++)
     {
-        numIndex = 0;
-        onEvenHexColumn = (alphaIndex % 2 == 0);
-        if(onEvenHexColumn)
-        {
-            numIndex = 1;
-        }
-        for (; numIndex < numSpan; numIndex++)
+        for (numIndex = ((alphaIndex+1) % 2); numIndex < numSpan; numIndex++)
         {
             //console.log('alphaIndex: ' + alphaIndex + ', numIndex: ' + numIndex);
             var currentHex = this.nodeArray2d[alphaIndex][numIndex].id;
@@ -114,31 +102,34 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, width, heig
             if(notOnBottomEdge)
             {
                 var hexBelowCurrent = this.nodeArray2d[alphaIndex][numIndex+1].id;
-                this.graph.addEdge(currentHex, hexBelowCurrent);
+                this.graph.addEdge(currentHex, hexBelowCurrent, {directed: true});
+                this.graph.addEdge(hexBelowCurrent, currentHex, {directed: true});
             }
             
             var notOnRightmostColumn = ((alphaIndex+1) < boardWidthInHexes);
-            //console.log('not rightmost? ' + (alphaIndex+1) + ' vs ' + boardWidthInHexes);
             if(notOnRightmostColumn)
             {
                 var notTopMostRow = (numIndex != 0);
                 if(notTopMostRow)
                 {
                     var hexNextColumnNext = this.nodeArray2d[alphaIndex+1][numIndex].id;
-                    this.graph.addEdge(currentHex, hexNextColumnNext);
+                    this.graph.addEdge(currentHex, hexNextColumnNext, {directed: true});
+                    this.graph.addEdge(hexNextColumnNext, currentHex, {directed: true});
                 }
             
                 var isOddRow = ((alphaIndex+1) % 2 == 0);
                 if(isOddRow && notOnBottomEdge)
-                {   // [i+1,j+2]
+                {   
                     var hexNextColumnBelow = this.nodeArray2d[alphaIndex+1][numIndex+1].id;
-                    this.graph.addEdge(currentHex, hexNextColumnBelow);
+                    this.graph.addEdge(currentHex, hexNextColumnBelow, {directed: true});
+                    this.graph.addEdge(hexNextColumnBelow, currentHex, {directed: true});
                 }
                 var notOnTopRow = (numIndex > 1);
                 if(!isOddRow && notOnTopRow)
                 {
                     var hexNextColumnAbove = this.nodeArray2d[alphaIndex+1][numIndex-1].id;
-                    this.graph.addEdge(currentHex, hexNextColumnAbove);
+                    this.graph.addEdge(currentHex, hexNextColumnAbove, {directed: true});
+                    this.graph.addEdge(hexNextColumnAbove, currentHex, {directed: true});
                 }
             }
         }
@@ -150,12 +141,14 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
     
     this.hexNode = graphNode; // from our boardGraph
     
+    this.terrainDatabaseTypes = graphNode.label;
+    
     this.hexId = graphNode.id;
     
     this.name = "name"+this.hexId;
     this.id = "group"+this.hexId;
     
-    var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
+    //var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
     
     var hexagon = new Kinetic.RegularPolygon({
         x: 0,
@@ -175,7 +168,14 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
         
     if(useFill == true)
     {
-        hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
+        //hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
+        var terrainType = this.terrainDatabaseTypes[0];
+        hexagon.setFill(getTerrainColor(terrainType));
+        var textColor = 'black';
+        if(terrainType == TerrainType.Woods)
+        {
+            textColor = 'white'
+        }
         hexagon.setStroke('black');
         hexagon.setStrokeWidth('1');
         
@@ -185,7 +185,7 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
             text: this.hexId,
             fontSize: 8,
             fontFamily: "Calibri",
-            textFill: 'black',
+            textFill: textColor,
             align: 'right',
             width: radius*2,
             name: "text"+this.hexId,
@@ -205,6 +205,19 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
         var pos = this.getAbsolutePosition();
         selectionGroup.setAbsolutePosition(pos.x, pos.y);
         selectionLayer.draw();
+        
+        var terrainHelperText = 'Terrain type';
+        if(this.terrainDatabaseTypes.length > 1)
+        {
+            terrainHelperText += 's';
+        }
+        terrainHelperText += ': ';
+        for(var i=0; i < this.terrainDatabaseTypes.length; i++)
+        {
+            terrainHelperText += getTerrainFromTerrainType(this.terrainDatabaseTypes[i]).mType + ', ';
+        }
+        terrainHelperText = terrainHelperText.slice(0, -2);
+        $('#terrainInfo').text(terrainHelperText);
     });
 };
 Kinetic.Global.extend(Hasl.BoardHex, Kinetic.Group);
@@ -265,18 +278,11 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
             if(boardGraph.nodeArray2d[i][j]) // != undefinded)
             {
                 var newHex = new Hasl.BoardHex(
-                    {
-                        offset: {
-                            x: radius, 
-                            y: radius
-                        }
-                    },
+                    { offset: { x: radius,  y: radius } },
                     radius, 
                     boardGraph.nodeArray2d[i][j],
                     useFills
-                    
-                    
-                    );
+                );
                 newHex.move(xOffset, yOffset);
                 layer.add(newHex);
                 yOffset += (y*2);

@@ -36,8 +36,8 @@
             window.onload = function() {
                 stage = new Kinetic.Stage({
                     container: "container",
-                    width: 1370,
-                    height: 600
+                    width: 300,
+                    height: 190
                 });
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
@@ -52,7 +52,7 @@
                 stage.add(selectionLayer);
                 stage.add(messageLayer);
 
-                stage.setScale(0.75,0.75);
+                //stage.setScale(0.75,0.75);
                 stage.draw();
                 
                 $("#graph").hide();

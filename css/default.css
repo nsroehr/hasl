@@ -6,3 +6,16 @@ canvas {
     border: 1px solid #9C9898;
     overflow: scroll;
 }
+#info {
+    /*border-top: 1px solid #9C9898;*/
+}
+#selectedUnit {
+    /*border-right: 1px solid #9C9898;*/
+    display: inline;
+}
+#terrainInfo {
+    margin: 0px;
+    margin-left: 0.25em;
+    padding: 0px;
+    display: inline;
+}

@@ -65,7 +65,6 @@
 
                 stage.setSize(sizePair.first, sizePair.second);
                 stage.draw();
-                
             };
             
             // TODO: units should be stored in some sort of database
@@ -112,7 +111,7 @@
                     var unitUnSelected = (selectedUnit == unit);
                     if(unitUnSelected)
                     {
-                        $('#info').hide();
+                        $('#selectedUnit').attr('src', '');
                         selectedUnit = undefined;
                         return;
                     }
@@ -120,9 +119,7 @@
                     selectedUnit.setStroke('red');
                     unitLayer.draw();
                     
-                    $('#info').empty();
-                    $('#info').append('<img src="' + unit.getId() + '" />');
-                    $('#info').show();
+                    $('#selectedUnit').attr('src', unit.getId())
                 });
             unit.on('mouseout', function(){
                 document.body.style.cursor = "default"; 
@@ -145,6 +142,9 @@
     </head>
     <body>
         <div id="container"></div>
-        <div id="info"></div>
+        <div id="info">
+            <img id="selectedUnit" src=""/>
+            <p id="terrainInfo"></p>
+        </div>
     </body>
 </html>
