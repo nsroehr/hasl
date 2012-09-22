@@ -37,7 +37,9 @@
                 stage = new Kinetic.Stage({
                     container: "container",
                     width: 1370,
-                    height: 600
+                    height: 600,
+                    draggable: true,
+                    dragConstraint: 'horizontal'
                 });
                 imageLoader.loadImages();
                 

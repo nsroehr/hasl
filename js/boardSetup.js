@@ -202,8 +202,8 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
         selectionGroup.add(createSelectionHex(radius));
         selectionGroup.id = "selection"+this.hexId;
         selectionGroup.name = this.hexId;
-        var pos = this.getAbsolutePosition();
-        selectionGroup.setAbsolutePosition(pos.x, pos.y);
+        var pos = this.getPosition();
+        selectionGroup.setPosition(pos);
         selectionLayer.draw();
         
         var terrainHelperText = 'Terrain type';
@@ -305,9 +305,8 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
             if(hex)
             {
                 var hexGroup = hex.getParent();
-                var pos = hexGroup.getAbsolutePosition();
-        
-                //selectedUnit.setAbsolutePosition(pos.x, pos.y);
+                var pos = hexGroup.getPosition();
+
                 selectedUnit.transitionTo({
                     x: pos.x - radius*2,
                     y: pos.y - radius,
