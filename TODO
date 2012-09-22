@@ -1,6 +1,4 @@
 HexBoard refinements
- - terrain data (from database)
-   * need mechanism for 'looking up' terrain data
  - adjacency lookups 
  - range rings
  

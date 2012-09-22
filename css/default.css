@@ -8,6 +8,7 @@ canvas {
 }
 #info {
     /*border-top: 1px solid #9C9898;*/
+    margin-left: 0.5em;
 }
 #selectedUnit {
     /*border-right: 1px solid #9C9898;*/

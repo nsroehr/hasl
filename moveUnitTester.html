@@ -90,12 +90,12 @@
                 var unit = new Kinetic.Image({
                     width: size,
                     height: size,
-                    strokeWidth: 4,
+//                    strokeWidth: 4,
                     offset: {x: -halfSize, y: -halfSize},
                     x: posX,
                     y: posY,
                     image: image,
-                    stroke: "black",
+//                    stroke: "black",
                     id: source
                 });
                 // this should only be done for groups...
@@ -108,7 +108,7 @@
                 unit.on('click', function() {
                     if(selectedUnit)
                     {
-                        selectedUnit.setStroke('black');
+                        selectedUnit.setStroke('transparent');
                     }
                     var unitUnSelected = (selectedUnit == unit);
                     if(unitUnSelected)
