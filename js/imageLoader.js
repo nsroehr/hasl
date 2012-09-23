@@ -1,21 +1,33 @@
 var Hasl = ( Hasl || {} );
-Hasl.ImageLoader = function() {
-    this.sources = {
-        american_2_e_fs: "./assets/ame_2_e_fs.png",
-        german_1_e_hs: "./assets/ger_1_e_hs.png",
-        board_y: "./assets/board_y.gif"
+Hasl.ImageSourceDatabase = 
+{
+    american_2_e_fs: {value: 0, source:"./assets/ame_2_e_fs.png"},
+    german_1_e_hs:   {value: 1, source:"./assets/ger_1_e_hs.png"},
+    board_y:         {value: 2, source:"./assets/board_y.gif"   }
+};
+
+Hasl.ImageLoader = function(imageSourceDb) 
+{
+    var that = {};
+    var images = {};
+    var sourceDatabase = imageSourceDb;
+    for(var entry in imageSourceDb) 
+    {
+        var src = imageSourceDb[entry].source;
+        var value = imageSourceDb[entry].value;
+        images[value] = new Image();
+        images[value].src = src;
+    }
+    
+    that.getImage = function(entry)
+    {
+        return images[entry.value];
     };
-    this.images = {};
-}
-Hasl.ImageLoader.prototype.loadImages = function(/*callback*/) {
-    //var loadedImages = 0;
-    var numImages = 0;
-    // get num of sources
-    for(var src in this.sources) {
-        numImages++;
+    
+    that.getDatabase = function()
+    {
+        return sourceDatabase;
     }
-    for(var src in this.sources) {
-        this.images[src] = new Image();
-        this.images[src].src = this.sources[src];
-    }
-}
+    
+    return that;
+};

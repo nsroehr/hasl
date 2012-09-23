@@ -16,7 +16,7 @@
         <script>
             
             var stage;
-            var imageLoader = new Hasl.ImageLoader();
+            
             var selectionLayer = new Kinetic.Layer();
             
             var selectedUnit;
@@ -41,7 +41,7 @@
                     draggable: true,
                     dragConstraint: 'horizontal'
                 });
-                imageLoader.loadImages();
+                var imageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
                 
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
@@ -53,10 +53,10 @@
                 drawBoard(boardGraph, layer, false);
                 
                 var unitLayer = new Kinetic.Layer();
-                drawUnits(unitLayer);
+                drawUnits(unitLayer, imageLoader);
                 
                 var boardImageLayer = new Kinetic.Layer();
-                var sizePair = drawBoardImage(boardImageLayer);
+                var sizePair = drawBoardImage(boardImageLayer, imageLoader.getImage(imageLoader.getDatabase().board_y));
                                 
                 stage.add(boardImageLayer);
                 stage.add(layer);
@@ -74,16 +74,16 @@
             //       additional data should appear on screen (context sensitive)
             //       concerning movement, los, range, etc...
             //       Obviously a unit object of some sort is necessary!
-            function drawUnits(unitLayer) 
+            function drawUnits(unitLayer, imageLoader) 
             {
                 // TODO: associate the unit positions with the BoardGraph
                 // TODO: convert unit position on BoardGraph to position on board (screen)
                 // we'll want to treat groups of units differently
-                addUnit(unitLayer, imageLoader.sources.german_1_e_hs, imageLoader.images.german_1_e_hs, 25, 34);
-                addUnit(unitLayer, imageLoader.sources.german_1_e_hs, imageLoader.images.german_1_e_hs, 20, 27);
-                addUnit(unitLayer, imageLoader.sources.american_2_e_fs, imageLoader.images.american_2_e_fs, 37.5*2, 60);
+                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 25, 34);
+                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 20, 27);
+                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().american_2_e_fs), 37.5*2, 60);
             }
-            function addUnit(unitLayer, source, image, posX, posY)
+            function addUnit(unitLayer, imageFromLoader, posX, posY)
             {
                 var size = 36;
                 var halfSize = size * 0.5;
@@ -94,9 +94,9 @@
                     offset: {x: -halfSize, y: -halfSize},
                     x: posX,
                     y: posY,
-                    image: image,
+                    image: imageFromLoader,
 //                    stroke: "black",
-                    id: source
+                    id: imageFromLoader.src
                 });
                 // this should only be done for groups...
                 unit.on('mousemove', function() {
@@ -128,10 +128,10 @@
             });
             unitLayer.add(unit);
         }
-        function drawBoardImage(boardImageLayer)
+        function drawBoardImage(boardImageLayer, boardImage)
         {
             var board_y = new Kinetic.Image({
-                image: imageLoader.images.board_y,
+                image: boardImage,
                 stroke: 'white',
                 strokeWidth: 6,
                 listening: false
