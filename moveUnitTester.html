@@ -8,8 +8,14 @@
         <script src="./js/dracula/raphael-min.js"></script>
         <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
         <script src="./js/dracula/dracula_graph.js"></script>
-        <script src="./js/boardGraph.js"></script>
+        <!-- 
+            TODO: remove me please! 
+            <script src="./js/boardGraph.js"></script>
+        -->
+        <script src="./js/scenarios.js"></script>
+        <script src="./js/terrains.js"></script>
         <script src="./js/terrain.js"></script>
+        
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
         <script src="./js/utils.js"></script>
@@ -34,6 +40,24 @@
 
             
             window.onload = function() {
+//                // desired super high-level API
+//                var scenario = Hasl.Scenario(Hasl.Scenarios.Veirville); // we only have one for now
+//             
+//                var game = Hasl.Game(scenario);
+//                // need some way to deal with 'players'...
+//                // scenario declares which player goes first
+//                game.start();
+//            }
+//
+//            
+//
+//            Hasl.Game = function(scenario)
+//            {
+//                var that = {};
+//                var renderer = Hasl.Renderer();
+//                
+//              
+//            };
                 stage = new Kinetic.Stage({
                     container: "container",
                     width: 1370,
@@ -46,10 +70,10 @@
                 var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
 
-                var terrainDatabases = new Hasl.TerrainDatabases();
-                var boardName = 'y';
-                var boardY = new Hasl.Board(boardName, 33, 10, terrainDatabases.getDatabase(boardName));
-                boardGraph = boardY.getBoardGraph(); //new Hasl.BoardGraph();
+                var scenario = Hasl.Scenarios.Vierville;
+                console.log(scenario);
+                var board = Hasl.Board(scenario.board.type, scenario.board.configuration);
+                var boardGraph = board.getBoardGraph(); //new Hasl.BoardGraph();
                 drawBoard(boardGraph, layer, false);
                 
                 var unitLayer = new Kinetic.Layer();

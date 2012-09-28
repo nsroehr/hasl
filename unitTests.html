@@ -2,13 +2,21 @@
 <html>
     <head>
         <meta charset="UTF-8" />
+        <script src="./js/scenarios.js"></script>
         <script>
             
             window.onload = function() 
             {
-                labelHexes();
-                createTerrainDatabase();
-                mod();
+//                labelHexes();
+//                createTerrainDatabase();
+//                mod();
+                getBoardDimensions('A1','V10');
+//                console.log(getIndexFromHexId('A1'));
+//                console.log(getIndexFromHexId('B0'));
+                
+                
+                //var scenario = Hasl.Scenarios.Vierville;
+                //console.log(scenario);
             }
 
             var alphas = new Array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z');
@@ -35,6 +43,10 @@
                 
                 document.getElementById('content').innerHTML = result;
             }
+            
+            
+
+            
             
             function mod()
             {
