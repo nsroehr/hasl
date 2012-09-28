@@ -9,24 +9,24 @@ var clickedGroup;
 var Hasl = ( Hasl || {} );
 Hasl.BoardUtils = {};
 
-Hasl.BoardUtils.alphabet = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','U','R','S','T','U','V','W','X','Y','Z'];
+Hasl.BoardUtils.alphabet = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 
 Hasl.BoardUtils.getBoardDimensions = function(topLeftHexId, bottomRightHexId)
 {
     var dimensions = [];
-    var topLeftIndecies = Hasl.BoardUtils.getIndeciesFromHexId(topLeftHexId);
-    var bottomRightIndecies = Hasl.BoardUtils.getIndeciesFromHexId(bottomRightHexId);
-    var boardWidth = bottomRightIndecies[0] - topLeftIndecies[0];
-    var boardHeight = 1 + bottomRightIndecies[1] - topLeftIndecies[1];
+    var topLeftIndices = Hasl.BoardUtils.getIndicesFromHexId(topLeftHexId);
+    var bottomRightIndices = Hasl.BoardUtils.getIndicesFromHexId(bottomRightHexId);
+    var boardWidth = 1 + bottomRightIndices[0] - topLeftIndices[0];
+    var boardHeight = 1 + bottomRightIndices[1] - topLeftIndices[1];
     dimensions.rowOffset = 0;
     dimensions.colOffset = 0;
     dimensions.width = boardWidth;
     dimensions.height = boardHeight;
-    console.log('w:'+boardWidth+',h:'+boardHeight);
+    //console.log('w:'+boardWidth+',h:'+boardHeight);
     return dimensions;
 };
             
-Hasl.BoardUtils.getIndeciesFromHexId = function(hexId)
+Hasl.BoardUtils.getIndicesFromHexId = function(hexId)
 {
     var alphabetLength = Hasl.BoardUtils.alphabet.length;
     var indecies = [];
@@ -37,21 +37,21 @@ Hasl.BoardUtils.getIndeciesFromHexId = function(hexId)
     for(var i=0; i < hexId.length; i++)
     {
         var currentChar = hexId.charAt(i);
-        //                  console.log('['+i+']::character'+currentChar);
+//        console.log('['+i+']::character'+currentChar);
         if(!IsNumeric(currentChar))
         {
             alphaString += currentChar;
-            //                     console.log('['+i+']::alphaString:'+alphaString);
+//            console.log('['+i+']::alphaString:'+alphaString);
             if(i === 0)
             {
                 alphaPosition = Hasl.BoardUtils.alphabet.indexOf(currentChar);
-            //                       console.log('['+i+']::alphaPosition:'+alphaPosition);
+//                console.log('['+i+']::alphaPosition:'+alphaPosition);
             }
         }
         else 
         {
             numericString += currentChar;
-        //                     console.log('[' + i + ']::numericString:' +numericString);
+//            console.log('[' + i + ']::numericString:' +numericString);
         }
     }
 
@@ -184,7 +184,10 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, dimensions)
         e.style.label = e.weight = weight;
         return e;
     }
-    that.getNodeArray = function() { return mNodeArray2d; }
+    that.getNodeArray = function() {
+        return mNodeArray2d;
+    }
+    that.getGraph = function() { return mGraph; }
     
     Hasl.BoardGraphUtils.createNodes(mGraph, mNodeArray2d, dimensions, terrainDatabase);
     Hasl.BoardGraphUtils.createEdges(mGraph, mNodeArray2d, dimensions);
@@ -225,9 +228,9 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill) {
     {
         //hexagon.setFill(terrainColors[Math.floor((Math.random()*(terrainColors.length)))]);
         var terrainType = this.terrainDatabaseTypes[0];
-        hexagon.setFill(getTerrainColor(terrainType));
+        hexagon.setFill(Hasl.TerrainRedering[terrainType]);
         var textColor = 'black';
-        if(terrainType == TerrainType.Woods)
+        if(terrainType == Hasl.Terrains.TerrainType.Woods)
         {
             textColor = 'white'
         }

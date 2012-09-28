@@ -71,10 +71,8 @@
                 var layer = new Kinetic.Layer();
 
                 var scenario = Hasl.Scenarios.Vierville;
-                console.log(scenario);
                 var board = Hasl.Board(scenario.board.type, scenario.board.configuration);
-                var boardGraph = board.getBoardGraph(); //new Hasl.BoardGraph();
-                drawBoard(boardGraph, layer, false);
+                drawBoard(board.getBoardGraph(), layer, false);
                 
                 var unitLayer = new Kinetic.Layer();
                 drawUnits(unitLayer, imageLoader);

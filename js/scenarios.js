@@ -30,6 +30,7 @@ Hasl.Scenarios =
     Vierville: 
     {
         name: 'Scenario 1 - Retaking Vierville',
+        description: '',
         board: 
         {
             type: Hasl.Boards.Y,
@@ -171,7 +172,27 @@ Hasl.Scenarios =
         { 
             Hasl.EvaluateBoard(5, NoGermansInHexes(['L3', 'N5', 'N6', 'M4']));
         }
+    },
+    Test:
+    {
+        name: 'Test Scenario',
+        description: '',
+        board: 
+        {
+            type: Hasl.Boards.Test,
+            configuration: 
+            {
+                north: Hasl.BoardConfiguration.Rotate90,
+                playableArea: 
+                {
+                    topLeft: 'A1',
+                    bottomRight: 'F3'
+                }
+            }
+        },
+        month: Hasl.Months.June,
+        turns: 5,
+        players: {},
+        victoryConditions: {}
     }
 };
-
-
