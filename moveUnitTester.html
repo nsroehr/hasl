@@ -14,7 +14,7 @@
         -->
         <script src="./js/scenarios.js"></script>
         <script src="./js/terrains.js"></script>
-        <script src="./js/terrain.js"></script>
+        <script src="./js/terrainDatabase.js"></script>
         
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
@@ -28,6 +28,7 @@
             var selectedUnit;
             
             var boardGraph;
+            var stageScalar = 1.0;
             
             function writeMessage(messageLayer, message) {
                 var context = messageLayer.getContext();
@@ -60,11 +61,12 @@
 //            };
                 stage = new Kinetic.Stage({
                     container: "container",
-                    width: 1370,
-                    height: 600,
-                    draggable: true,
-                    dragConstraint: 'horizontal'
+                    width: 1180, //1370,
+                    height: 600 //,
+//                    draggable: true,
+//                    dragConstraint: 'horizontal'
                 });
+                
                 var imageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
                 var layer = new Kinetic.Layer();
 
@@ -76,15 +78,16 @@
                 drawUnits(unitLayer, imageLoader);
                 
                 var boardImageLayer = new Kinetic.Layer();
-                var sizePair = drawBoardImage(boardImageLayer, imageLoader.getImage(imageLoader.getDatabase().board_y));
-                                
+                var sizePair = drawBoardImage(boardImageLayer, board.getDimensions(), imageLoader.getImage(imageLoader.getDatabase().board_y));
+
                 stage.add(boardImageLayer);
                 stage.add(layer);
                 stage.add(selectionLayer);
                 
                 stage.add(unitLayer);
 
-                stage.setSize(sizePair.first, sizePair.second);
+                stage.setSize(stageScalar*sizePair.first, stageScalar*sizePair.second);
+                stage.setScale(stageScalar);
                 stage.draw();
             };
             
@@ -127,7 +130,14 @@
                 unit.on('click', function() {
                     if(selectedUnit)
                     {
-                        selectedUnit.setStroke('transparent');
+//                        selectedUnit.setStroke('transparent');
+                        selectedUnit.setShadow({
+                            color: 'transparent',
+                            blur: 3,
+                            offset: [3, 3],
+                            opacity: 0.5
+                        });
+                        selectedUnit.setScale([1,1]);
                     }
                     var unitUnSelected = (selectedUnit == unit);
                     if(unitUnSelected)
@@ -137,7 +147,14 @@
                         return;
                     }
                     selectedUnit = unit;
-                    selectedUnit.setStroke('red');
+//                    selectedUnit.setStroke('red');
+                    selectedUnit.setScale([1.1,1.1]);
+                    selectedUnit.setShadow({
+                        color: 'black',
+                        blur: 3,
+                        offset: [3, 3],
+                        opacity: 0.5
+                    });
                     unitLayer.draw();
                     
                     $('#selectedUnit').attr('src', unit.getId())
@@ -147,22 +164,82 @@
             });
             unitLayer.add(unit);
         }
-        function drawBoardImage(boardImageLayer, boardImage)
+        function drawBoardImage(boardImageLayer, boardDimensions, boardImage)
         {
+            // TODO: need container for boardImages (so that height & width can be hardcoded)
+            var boardImageHeight = 645;
+            var hexWidth2x = (28*2);
+            var boardImageWidth = (boardDimensions.width-1) * hexWidth2x;
             var board_y = new Kinetic.Image({
                 image: boardImage,
                 stroke: 'white',
                 strokeWidth: 6,
-                listening: false
+                listening: false,
+                height: boardImageHeight,
+                width: boardImageWidth,
+                crop: { x:0, y:0, width: boardImageWidth, height: boardImageHeight }
             });
             var sizePair = new Utils.Pair(board_y.getWidth(), board_y.getHeight());
             boardImageLayer.add(board_y);
             return sizePair;
         }
+        function scaleStage()
+        {
+            var size = stage.getSize();
+            stage.setSize(stageScalar*size.width, stageScalar*size.height);
+            stage.setScale(stageScalar);
+            stage.draw();
+
+            size = stage.getSize();
+//            $('#container canvas').width(size.width);
+//            $('#container canvas').height(size.height);
+        }
+        function zoomIn()
+        {
+            if(stageScalar < 1.25)
+            {
+                stageScalar += 0.25;
+                scaleStage();
+               
+                $('#zoomOut').removeAttr('disabled');
+                if(stageScalar < 1.25)
+                {
+                    $('#zoomIn').attr('disabled','disabled');
+                }
+            }
+            else
+            {
+                $('#zoomIn').attr('disabled','disabled');
+            }
+        }
+        function zoomOut()
+        {
+            if(stageScalar > 0.75)
+            {
+                stageScalar -= 0.25;
+                scaleStage();
+                
+                $('#zoomIn').removeAttr('disabled');
+                if(stageScalar > 0.75)
+                {
+                    $('#zoomOut').attr('disabled','disabled');
+                }
+            }
+            else
+            {
+                $('#zoomOut').attr('disabled','disabled');
+            }
+            
+        }
         </script>
     </head>
     <body>
         <div id="container"></div>
+<!--        <div id="controls">
+            <button id="zoomIn" onclick="zoomIn();">+</button>
+            <button id="zoomOut" onclick="zoomOut();">-</button>
+            <br>
+        </div>-->
         <div id="info">
             <img id="selectedUnit" src=""/>
             <p id="terrainInfo"></p>

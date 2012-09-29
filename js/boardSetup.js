@@ -74,6 +74,10 @@ Hasl.Board = function(name, configuration)
     {
         return mBoardGraph;
     }
+    that.getDimensions = function()
+    {
+        return mDimensions;
+    }
     return that;
 }
 
