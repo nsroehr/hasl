@@ -66,8 +66,6 @@
                     dragConstraint: 'horizontal'
                 });
                 var imageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
-                
-                var messageLayer = new Kinetic.Layer();
                 var layer = new Kinetic.Layer();
 
                 var scenario = Hasl.Scenarios.Vierville;
@@ -83,7 +81,6 @@
                 stage.add(boardImageLayer);
                 stage.add(layer);
                 stage.add(selectionLayer);
-                stage.add(messageLayer);
                 
                 stage.add(unitLayer);
 
