@@ -14,19 +14,14 @@ Hasl.Game = function(scenario)
     return that;
 }
             
-Hasl.GameInterface = function(useFills)
+Hasl.GameInterface = function(scenario, useFills)
 {
     var that = {};
     var mImageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
     that.getImageLoader = function() { return mImageLoader; }
                 
-    var mGame;
-    that.selectScenario = (function()
-    {
-        var scenario = Hasl.Scenarios.Vierville;
-        mGame = Hasl.Game(scenario);
-    })();
-                
+    var mGame = Hasl.Game(scenario);
+                    
     var stage  = new Kinetic.Stage({
         container: "container",
         width: 1800,
@@ -160,7 +155,12 @@ Hasl.GameInterface = function(useFills)
         return size;
     }
     drawBoard();
-    var size = drawBoardImage();
+    // TODO: calculate from boardHeight, boardWidth
+    var size = { width: 300, height: 190 };
+    if(!useFills)
+    {
+        size = drawBoardImage();
+    }
     var stageScalar = 1.0;
                 
     stage.add(boardImageLayer);

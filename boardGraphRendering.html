@@ -15,49 +15,20 @@
         <!--  Graphs  -->
         <script src="./js/dracula/dracula_graph.js"></script>
         <script src="./js/dracula/dracula_algorithms.js"></script>
-        
+
         <script src="./js/scenarios.js"></script>
         <script src="./js/terrains.js"></script>
         <script src="./js/terrainDatabase.js"></script>
-        <script src="./js/boardGraph.js"></script>
+        <!--<script src="./js/boardGraph.js"></script>-->
         <script src="./js/terrain.js"></script>
         <script src="./js/boardSetup.js"></script>
+        <script src="./js/imageLoader.js"></script>
+        <script src="./js/game.js"></script>
         <script src="./js/utils.js"></script>
         <script>
-            var stage;
-            var selectionLayer = new Kinetic.Layer();
-            var boardGraph;
-            
-            function writeMessage(messageLayer, message) {
-                var context = messageLayer.getContext();
-                messageLayer.clear();
-                context.font = "18pt Calibri";
-                context.fillStyle = "black";
-                context.align = "right";
-                context.fillText(message, stage.getWidth()-180, 25);
-            }
-
             window.onload = function() {
-                stage = new Kinetic.Stage({
-                    container: "container",
-                    width: 300,
-                    height: 190
-                });
-                var messageLayer = new Kinetic.Layer();
-                var layer = new Kinetic.Layer();
-
                 var scenario = Hasl.Scenarios.Test;
-                var board = Hasl.Board(scenario.board.type, scenario.board.configuration);
-                boardGraph = board.getBoardGraph();
-                drawBoard(boardGraph, layer, true);
-
-                stage.add(layer);
-                stage.add(selectionLayer);
-                stage.add(messageLayer);
-
-                //stage.setScale(0.75,0.75);
-                stage.draw();
-                
+                Hasl.GameInterface(scenario, true);
                 $("#graph").hide();
             };
         
@@ -98,14 +69,14 @@
     </head>
     <body>
         <div id="container"></div>
-        
-<!--    TODO: fix this! 
-        <div id="debugGraph">
-            <button id="showGraph" onclick="renderGraph();">Show graph</button><br>
-            <div id="graph">
-                Graph look'n ugly? Hit <button id="redraw" onclick="redraw();">redraw</button>!<br>
-                <div id="canvas"></div>
-            </div>
-        </div>-->
+
+        <!--    TODO: fix this! 
+                <div id="debugGraph">
+                    <button id="showGraph" onclick="renderGraph();">Show graph</button><br>
+                    <div id="graph">
+                        Graph look'n ugly? Hit <button id="redraw" onclick="redraw();">redraw</button>!<br>
+                        <div id="canvas"></div>
+                    </div>
+                </div>-->
     </body>
 </html>

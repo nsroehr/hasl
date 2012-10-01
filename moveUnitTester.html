@@ -23,7 +23,8 @@
         <script>
             
             window.onload = function() {
-                var game = Hasl.GameInterface();
+                var scenario = Hasl.Scenarios.Vierville;
+                var game = Hasl.GameInterface(scenario);
                 drawUnits(game, game.getUnitLayer(), game.getImageLoader());
                 game.draw();
             };
