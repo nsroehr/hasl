@@ -101,6 +101,7 @@ Hasl.GameInterface = function(useFills)
         }
 
         selectionGroup.on("click", function() {
+            console.log(selectedUnit);
             if(selectedUnit)
             {
                 var radius = mHexDimensions.radius;

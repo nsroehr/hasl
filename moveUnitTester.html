@@ -64,21 +64,22 @@
                     unitLayer.draw();
                 });
                 unit.on('click', function() {
-                    if(selectedUnit)
+                    var selected = game.getSelectedUnit()
+                    if(selected)
                     {
-                        selectedUnit.setShadow({
+                        selected.setShadow({
                             color: 'transparent',
                             blur: 3,
                             offset: [3, 3],
                             opacity: 0.5
                         });
-                        selectedUnit.setScale([1,1]);
+                        selected.setScale([1,1]);
                     }
-                    var unitUnSelected = (selectedUnit == unit);
+                    var unitUnSelected = (selected == unit);
                     if(unitUnSelected)
                     {
                         $('#selectedUnit').attr('src', '');
-                        selectedUnit = undefined;
+                        game.setSelectedUnit(undefined);
                         return;
                     }
                     selectedUnit = unit;
@@ -92,6 +93,7 @@
                     unitLayer.draw();
                     
                     $('#selectedUnit').attr('src', unit.getId())
+                    game.setSelectedUnit(selectedUnit);
                 });
             unit.on('mouseout', function(){
                 document.body.style.cursor = "default"; 
