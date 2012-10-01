@@ -1,0 +1,45 @@
+<!DOCTYPE HTML> 
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" type="text/css" href="css/default.css" />
+        <script src="./js/dracula/jquery-1.4.2.min.js"></script>
+        <script src="./js/kineticJS/kinetic-v4.0.1.js"></script>
+        <script src="./js/dracula/raphael-min.js"></script>
+        <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
+        <script src="./js/dracula/dracula_graph.js"></script>
+        <!-- 
+            TODO: remove me please! 
+            <script src="./js/boardGraph.js"></script>
+        -->
+        <script src="./js/scenarios.js"></script>
+        <script src="./js/terrains.js"></script>
+        <script src="./js/terrainDatabase.js"></script>
+
+        <script src="./js/boardSetup.js"></script>
+        <script src="./js/imageLoader.js"></script>
+        <script src="./js/game.js"></script>
+        <script src="./js/utils.js"></script>
+        <script>
+            window.onload = function()
+            {
+                var game = Hasl.GameInterface();
+            }
+            
+            function done()
+            {
+                alert('not implemented');
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container"></div>
+        <div id="controls">
+            <button id="done" onclick="done();">done</button>
+        </div>
+        <div id="info">
+            <img id="selectedUnit" src=""/>
+            <p id="terrainInfo"></p>
+        </div>
+    </body>
+</html>

@@ -198,7 +198,7 @@ Hasl.BoardGraph = function(/*Hasl.TerrainDatabase*/ terrainDatabase, dimensions)
     return that;
 };
 
-Hasl.BoardHex = function(config, radius, graphNode, useFill) {
+Hasl.BoardHex = function(config, radius, graphNode, useFill, selectionGroup, selectionLayer) {
     Kinetic.Group.call(this, config);
     
     this.hexNode = graphNode; // from our boardGraph
@@ -316,8 +316,9 @@ function createClickedHex() {
     return clickedHex;
 }
 
+/*
 // TODO: move this into a well defined interface
-function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
+function drawBoard(boardGraph, layer, useFills)
 {
     selectionGroup = new Kinetic.Group();
     clickedGroup = new Kinetic.Group();
@@ -393,3 +394,4 @@ function drawBoard(/*BoardGraph*/ boardGraph, layer, useFills)
     selectionLayer.add(selectionGroup);
     selectionLayer.add(clickedGroup);
 }
+*/

@@ -20,7 +20,7 @@ Hasl.Units =
     }
 };
 
-Hasl.Boards = { Y: 'y-board', Test: 'test' };
+Hasl.Boards = { Y: 'board_y', Test: 'test' };
 Hasl.BoardConfiguration = { Rotate90: 90 };
 Hasl.Players = { Ally: 0,  Axis: 1 };
 Hasl.Months = { June: 'June' };

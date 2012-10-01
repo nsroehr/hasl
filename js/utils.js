@@ -14,3 +14,13 @@ function IsNumeric(input)
 {
     return (input - 0) == input && input.length > 0;
 }
+
+//Function.prototype.method = function (name, func) 
+//{
+//    if (!this.prototype[name]) 
+//    {
+//        this.prototype[name] = func;
+//        return this;
+//    }
+//    return undefined;
+//};

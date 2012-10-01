@@ -18,77 +18,14 @@
         
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
+        <script src="./js/game.js"></script>
         <script src="./js/utils.js"></script>
         <script>
             
-            var stage;
-            
-            var selectionLayer = new Kinetic.Layer();
-            
-            var selectedUnit;
-            
-            var boardGraph;
-            var stageScalar = 1.0;
-            
-            function writeMessage(messageLayer, message) {
-                var context = messageLayer.getContext();
-                messageLayer.clear();
-                context.font = "18pt Calibri";
-                context.fillStyle = "black";
-                context.align = "right";
-                context.fillText(message, stage.getWidth()-180, 25);
-            }
-
-            
             window.onload = function() {
-//                // desired super high-level API
-//                var scenario = Hasl.Scenario(Hasl.Scenarios.Veirville); // we only have one for now
-//             
-//                var game = Hasl.Game(scenario);
-//                // need some way to deal with 'players'...
-//                // scenario declares which player goes first
-//                game.start();
-//            }
-//
-//            
-//
-//            Hasl.Game = function(scenario)
-//            {
-//                var that = {};
-//                var renderer = Hasl.Renderer();
-//                
-//              
-//            };
-                stage = new Kinetic.Stage({
-                    container: "container",
-                    width: 1180, //1370,
-                    height: 600 //,
-//                    draggable: true,
-//                    dragConstraint: 'horizontal'
-                });
-                
-                var imageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
-                var layer = new Kinetic.Layer();
-
-                var scenario = Hasl.Scenarios.Vierville;
-                var board = Hasl.Board(scenario.board.type, scenario.board.configuration);
-                drawBoard(board.getBoardGraph(), layer, false);
-                
-                var unitLayer = new Kinetic.Layer();
-                drawUnits(unitLayer, imageLoader);
-                
-                var boardImageLayer = new Kinetic.Layer();
-                var sizePair = drawBoardImage(boardImageLayer, board.getDimensions(), imageLoader.getImage(imageLoader.getDatabase().board_y));
-
-                stage.add(boardImageLayer);
-                stage.add(layer);
-                stage.add(selectionLayer);
-                
-                stage.add(unitLayer);
-
-                stage.setSize(stageScalar*sizePair.first, stageScalar*sizePair.second);
-                stage.setScale(stageScalar);
-                stage.draw();
+                var game = Hasl.GameInterface();
+                drawUnits(game, game.getUnitLayer(), game.getImageLoader());
+                game.draw();
             };
             
             // TODO: units should be stored in some sort of database
@@ -96,30 +33,29 @@
             //       additional data should appear on screen (context sensitive)
             //       concerning movement, los, range, etc...
             //       Obviously a unit object of some sort is necessary!
-            function drawUnits(unitLayer, imageLoader) 
+            function drawUnits(game, unitLayer, imageLoader) 
             {
                 // TODO: associate the unit positions with the BoardGraph
                 // TODO: convert unit position on BoardGraph to position on board (screen)
                 // we'll want to treat groups of units differently
-                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 25, 34);
-                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 20, 27);
-                addUnit(unitLayer, imageLoader.getImage(imageLoader.getDatabase().american_2_e_fs), 37.5*2, 60);
+                addUnit(game, unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 25, 34);
+                addUnit(game, unitLayer, imageLoader.getImage(imageLoader.getDatabase().german_1_e_hs), 20, 27);
+                addUnit(game, unitLayer, imageLoader.getImage(imageLoader.getDatabase().american_2_e_fs), 37.5*2, 60);
             }
-            function addUnit(unitLayer, imageFromLoader, posX, posY)
+            function addUnit(game, unitLayer, imageFromLoader, posX, posY)
             {
                 var size = 36;
                 var halfSize = size * 0.5;
                 var unit = new Kinetic.Image({
                     width: size,
                     height: size,
-//                    strokeWidth: 4,
                     offset: {x: -halfSize, y: -halfSize},
                     x: posX,
                     y: posY,
                     image: imageFromLoader,
-//                    stroke: "black",
                     id: imageFromLoader.src
                 });
+                var selectedUnit = game.getSelectedUnit();
                 // this should only be done for groups...
                 unit.on('mousemove', function() {
                     document.body.style.cursor = "pointer";
@@ -130,7 +66,6 @@
                 unit.on('click', function() {
                     if(selectedUnit)
                     {
-//                        selectedUnit.setStroke('transparent');
                         selectedUnit.setShadow({
                             color: 'transparent',
                             blur: 3,
@@ -147,7 +82,6 @@
                         return;
                     }
                     selectedUnit = unit;
-//                    selectedUnit.setStroke('red');
                     selectedUnit.setScale([1.1,1.1]);
                     selectedUnit.setShadow({
                         color: 'black',
@@ -164,25 +98,6 @@
             });
             unitLayer.add(unit);
         }
-        function drawBoardImage(boardImageLayer, boardDimensions, boardImage)
-        {
-            // TODO: need container for boardImages (so that height & width can be hardcoded)
-            var boardImageHeight = 645;
-            var hexWidth2x = (28*2);
-            var boardImageWidth = (boardDimensions.width-1) * hexWidth2x;
-            var board_y = new Kinetic.Image({
-                image: boardImage,
-                stroke: 'white',
-                strokeWidth: 6,
-                listening: false,
-                height: boardImageHeight,
-                width: boardImageWidth,
-                crop: { x:0, y:0, width: boardImageWidth, height: boardImageHeight }
-            });
-            var sizePair = new Utils.Pair(board_y.getWidth(), board_y.getHeight());
-            boardImageLayer.add(board_y);
-            return sizePair;
-        }
         function scaleStage()
         {
             var size = stage.getSize();
@@ -191,8 +106,6 @@
             stage.draw();
 
             size = stage.getSize();
-//            $('#container canvas').width(size.width);
-//            $('#container canvas').height(size.height);
         }
         function zoomIn()
         {
