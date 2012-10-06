@@ -1,4 +1,5 @@
 var Hasl = ( Hasl || {} );
+
 Hasl.Game = function(scenario)
 {
     var that = {};
@@ -17,7 +18,8 @@ Hasl.Game = function(scenario)
 Hasl.GameInterface = function(scenario, useFills)
 {
     var that = {};
-    var mImageLoader = Hasl.ImageLoader(Hasl.ImageSourceDatabase);
+    var mImageSourceDb = Hasl.ImageSourceDatabase;
+    var mImageLoader = Hasl.ImageLoader(mImageSourceDb);
     that.getImageLoader = function() { return mImageLoader; }
                 
     var mGame = Hasl.Game(scenario);
@@ -28,28 +30,30 @@ Hasl.GameInterface = function(scenario, useFills)
         height: 645 
     });
     
-    var selectedUnit;
     var boardRenderer;
+    var hexDimensions = { radius: 37.5,  height: 32, distBetweenCenters: 28.5 };
+    var boardNodeArray = mGame.getBoard().getBoardGraph().getNodeArray();
     if(useFills)
     {
-        boardRenderer = Hasl.BoardTerrainBasedRenderer(mGame.getBoard());
+        boardRenderer = Hasl.BoardTerrainBasedRenderer(boardNodeArray, mGame.getBoard().getDimensions(), hexDimensions);
     }
     else
     {
         boardRenderer = Hasl.BoardImageRenderer(mGame.getBoard().getDimensions(), mGame.getBoard().getBoardType(), mImageLoader);
+        hexDimensions = mImageSourceDb[mGame.getBoard().getBoardType()].hex;
     }
+    
+    var mSelectionLayer = new Kinetic.Layer();
+    Hasl.BoardHexSelectors(boardNodeArray, mSelectionLayer, false, hexDimensions);
     
     var unitLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return unitLayer; }
+    var selectedUnit;
     that.setSelectedUnit = function(unit) { selectedUnit = unit; }
     that.getSelectedUnit = function() { return selectedUnit; }
                 
-    //var size = boardRenderer.render(mImageLoader);
-
     stage.add(boardRenderer.getBoardLayer());
-    //stage.add(boardRenderer.getUnderlyingHexRepresentationLayer());
-    //stage.add(boardRenderer.getSelectionLayer());
-    
+    stage.add(mSelectionLayer);
     stage.add(unitLayer);
                 
     var stageScalar = 1.0;
@@ -57,37 +61,44 @@ Hasl.GameInterface = function(scenario, useFills)
     stage.setSize(stageScalar*size.width, stageScalar*size.height);
     stage.setScale(stageScalar);
     stage.draw();
+    
     that.draw = function() { stage.draw(); }
+    
     return that;
+}
+
+Hasl.BoardRendererUtils = {};
+Hasl.BoardRendererUtils.getBoardDimensionsInPixels = function(boardDimensions, hexDimensions)
+{
+    var boardWidth =  (boardDimensions.width-1) * (hexDimensions.distBetweenCenters*2) - (boardDimensions.width) + 5
+    var boardHeight = (boardDimensions.height) * (hexDimensions.height*2);
+    return {width: boardWidth, height: boardHeight};
 }
 
 Hasl.BoardImageRenderer = function(boardDimensions, boardType, imageLoader)
 {
-    var that = {};
-    
     var mBoardImageLayer = new Kinetic.Layer();
-    that.getBoardLayer = function() { return mBoardImageLayer; }
     
     var drawBoardImage = function(imageLoader, boardDimensions, boardType)
     {
         var boardImageName = boardType;
         var boardImageSource = imageLoader.getImage(imageLoader.getDatabase()[boardImageName]);
-        // TODO: need container for boardImages (so that height & width can be hardcoded)
-        var boardImageHeight = 648; //Hasl.ImageSourceDatabase[boardImageName].height;
-        var hexWidth2x = 57; // measured from image
-        var scenarioImageWidth = (boardDimensions.width-1) * hexWidth2x - (boardDimensions.width) + 5;
+        var boardSourceInfo = Hasl.ImageSourceDatabase[boardImageName];
+        //var boardImageHeight = boardSourceInfo.height;
+        var scenarioImageDimensions = Hasl.BoardRendererUtils.getBoardDimensionsInPixels(boardDimensions, boardSourceInfo.hex);
+       
         var boardImage = new Kinetic.Image({
             image: boardImageSource,
             stroke: 'white',
             strokeWidth: 6,
             listening: false,
-            height: boardImageHeight,
-            width: scenarioImageWidth,
+            height: scenarioImageDimensions.height,
+            width: scenarioImageDimensions.width,
             crop: {
                 x:0, 
                 y:0, 
-                width: scenarioImageWidth, 
-                height: boardImageHeight
+                width: scenarioImageDimensions.width, 
+                height: scenarioImageDimensions.height
             }
         });
                     
@@ -99,84 +110,123 @@ Hasl.BoardImageRenderer = function(boardDimensions, boardType, imageLoader)
         return size;
     }
     
-    // TODO: calculate from boardHeight, boardWidth
-    var mSize = { width: 300, height: 190 };
-    var useFills = false;
-    if(!useFills)
-    {
-        mSize = drawBoardImage(imageLoader, boardDimensions, boardType);
-    }
+    var mSize = drawBoardImage(imageLoader, boardDimensions, boardType);
+    
+    var that = {};
+    that.getBoardLayer = function() { return mBoardImageLayer; }
     that.getSize = function() { return mSize; }
     return that;
 }
 
-Hasl.BoardTerrainBasedRenderer = function(board)
+Hasl.Orchestrator = function()
 {
     var that = {};
     
-    // TODO: use extension here (so that BoardImageRenderer can be reused)
-    var mBoardLayer = new Kinetic.Layer();
-    that.getBoardLayer = function() { return mBoardLayer; }
+    var selectedHex;
+    var hoverHex;
+    var selectedUnit;
     
-    var mHexDimensions = {
-        radius: 37.5, 
-        height: 32
-    }; // measured from image
-    
-    var mSelectionGroup, mSelectionLayer; // unused, needs redesign!
-    
-    var drawBoard = function(board)
+    that.selectHex = function(hexId)
     {
-        var useFills = true;
-        var radius = mHexDimensions.radius; 
-        var hexHeight = mHexDimensions.height;
-
-        var xOffset = radius;
-        var nodeArray = board.getBoardGraph().getNodeArray();
-        var numNodes = nodeArray.length;
-    
-        for(var i=0; i<numNodes; i++)
-        {
-            var yOffset = hexHeight;
-            var isEvenHex = ((i+1) % 2 == 0);
-            if(isEvenHex)
-            {
-                yOffset -= hexHeight;
-            }
-            for (var j=0; j<numNodes; j++)
-            {
-                if(nodeArray[i][j]) // != undefinded)
-                {
-                    var newHex = new Hasl.BoardHex (
-                        { offset: { x: radius,   y: radius } },
-                        radius, 
-                        nodeArray[i][j],
-                        useFills,
-                        mSelectionGroup,
-                        mSelectionLayer
-                    );
-                    newHex.move(xOffset, yOffset);
-                    mBoardLayer.add(newHex);
-                    yOffset += (hexHeight*2);
-                    if(j > 0)
-                    {
-                        yOffset += 1;
-                    }
-                }
-            
-            }
-            xOffset += radius+(radius*0.5);
-        }
+        selectedHex = hexId;
     }
-    drawBoard(board);
-    that.getSize = function() { return { width: 300, height: 190 }; }
+    
+    that.hoverHex = function(hexId)
+    {
+        hoverHex = hexId;
+    }
+    
+    that.hoverOutHex = function(hexId)
+    {
+        hoverHex = undefined;
+    }
+    
+    that.selectUnit = function(unit)
+    {
+        that.unSelectUnit(unit);
+        selectedUnit = unit;
+    }
+    
+    that.unSelectUnit = function(unit)
+    {
+        selectedUnit = undefined;
+    }
+    
+    that.getSelectedUnit = function()
+    {
+        return selectedUnit;
+    }
+    
+    that.getSelectedHex = function()
+    {
+        return selectedHex;
+    }
+    
     return that;
 }
 
-Hasl.BoardHex = function(config, radius, graphNode, useFill, selectionGroup, selectionLayer) {
-    Kinetic.Group.call(this, config);
+var orchestrator = Hasl.Orchestrator();
+
+Hasl.BoardHexSelectors = function(boardNodeArray, selectionLayer, useFills, hexDimensions)
+{
+    var radius = hexDimensions.radius; 
+    var hexHeight = hexDimensions.height;
+
+    var xOffset = radius;
+    var numNodes = boardNodeArray.length;
+
+    for(var i=0; i<numNodes; i++)
+    {
+        var yOffset = hexHeight;
+        var isEvenHex = ((i+1) % 2 == 0);
+        if(isEvenHex)
+        {
+            yOffset -= hexHeight;
+        }
+        for (var j=0; j<numNodes; j++)
+        {
+            if(boardNodeArray[i][j]) // != undefinded)
+            {
+                var newHex = new Hasl.BoardHex (
+                    { offset: { x: radius,   y: radius } },
+                    radius, 
+                    boardNodeArray[i][j],
+                    useFills,
+                    selectionLayer
+                );
+                newHex.move(xOffset, yOffset);
+                selectionLayer.add(newHex);
+                yOffset += (hexHeight*2);
+                if(j > 0)
+                {
+                    yOffset += 1;
+                }
+            }
+
+        }
+        xOffset += radius+(radius*0.5);
+    }
+}
+
+Hasl.BoardTerrainBasedRenderer = function(boardNodeArray, boardDimensions, hexDimensions)
+{
+    var that = {};
     
-    this.hexNode = graphNode; // from our boardGraph
+    var mBoardLayer = new Kinetic.Layer();
+    that.getBoardLayer = function() { return mBoardLayer; }
+    
+    var useFills = true;
+    Hasl.BoardHexSelectors(boardNodeArray, mBoardLayer, useFills, hexDimensions);
+    
+    var boardDimensionsInPixels = Hasl.BoardRendererUtils.getBoardDimensionsInPixels(boardDimensions, hexDimensions)
+    
+    that.getSize = function() { return boardDimensionsInPixels; }
+    
+    return that;
+}
+
+Hasl.BoardHex = function(config, radius, graphNode, useFill, layer) {
+    Kinetic.Group.call(this, config);
     
     this.terrainDatabaseTypes = graphNode.label;
     
@@ -185,14 +235,14 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill, selectionGroup, sel
     this.name = "name"+this.hexId;
     this.id = "group"+this.hexId;
     
-    //var terrainColors = new Array('khaki','gray','sienna','yellowgreen','olivedrab','goldenrod');
-    
-    var hexagon = new Kinetic.RegularPolygon({
+    var selectedColor = 'orange';
+    var unSelectedColor = 'transparent';
+    this.hexagon = new Kinetic.RegularPolygon({
         x: 0,
         y: 0,
         sides: 6,
         radius: radius,
-        fill: "transparent",
+        fill: unSelectedColor,
         rotationDeg: 90,
         name: "hex"+this.hexId,
         id: this.hexId,
@@ -200,21 +250,21 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill, selectionGroup, sel
             x: -radius, 
             y: 0
         }
-    });    
-    this.add(hexagon);
+    });
+    this.add(this.hexagon);
         
-    if(useFill == true)
+    if(useFill === true)
     {
         var terrainType = this.terrainDatabaseTypes[0];
-        hexagon.setFill(Hasl.TerrainRedering[terrainType]);
+        this.hexagon.setFill(Hasl.TerrainRedering[terrainType]);
         var textColor = 'black';
         // TODO: change this to a function, isDarkTerrain(terrainType)
         if(terrainType == Hasl.Terrains.TerrainType.Woods)
         {
             textColor = 'white'
         }
-        hexagon.setStroke('black');
-        hexagon.setStrokeWidth('1');
+        this.hexagon.setStroke('black');
+        this.hexagon.setStrokeWidth('1');
         
         var simpleText = new Kinetic.Text({
             x: -radius*2+5,
@@ -233,154 +283,47 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill, selectionGroup, sel
         });
         this.add(simpleText);
     }
-
-    this.on('mousemove', function() {
-        //var hex = this.get("#"+this.hexId)[0];
-        selectionGroup.add(createSelectionHex(radius));
-        selectionGroup.id = "selection"+this.hexId;
-        selectionGroup.name = this.hexId;
-        var pos = this.getPosition();
-        selectionGroup.setPosition(pos);
-        selectionLayer.draw();
+    else // useFill === false
+    {
+        this.setOpacity(0.5);
         
         var terrainHelperText = 'Terrain type';
-        if(this.terrainDatabaseTypes.length > 1)
+        var hex = this.hexagon;
+        if(hex.getParent().terrainDatabaseTypes.length > 1)
         {
             terrainHelperText += 's';
         }
         terrainHelperText += ': ';
-        for(var i=0; i < this.terrainDatabaseTypes.length; i++)
+        for(var i=0; i < hex.getParent().terrainDatabaseTypes.length; i++)
         {
-            terrainHelperText += Hasl.Terrains[this.terrainDatabaseTypes[i]].getType() + ', ';
+            terrainHelperText += Hasl.Terrains[hex.getParent().terrainDatabaseTypes[i]].getType() + ', ';
         }
         terrainHelperText = terrainHelperText.slice(0, -2);
-        $('#terrainInfo').text(terrainHelperText);
-    });
+            
+        this.hexagon.on('mousemove', function() {
+            this.setFill(selectedColor);
+            layer.draw();
+            
+            $('#terrainInfo').text(terrainHelperText);
+            
+            orchestrator.hoverHex(this.getParent().hexId);
+        });
+        
+        this.hexagon.on('mouseout', function() {
+           this.setFill(unSelectedColor);
+           layer.draw();
+           
+           $('#terrainInfo').text('');
+           
+           orchestrator.hoverOutHex(this.getParent().hexId);
+        });
+        
+        this.hexagon.on('click', function(){
+            orchestrator.selectHex(this.getParent().hexId);
+        });
+    }
+    this.fill = this.hexagon.getFill();
+
+    
 };
 Kinetic.Global.extend(Hasl.BoardHex, Kinetic.Group);
-
-function createSelectionHex(radius) {
-    var strokeWidth = 1;
-    var selectionHexagon = new Kinetic.RegularPolygon({
-        x: -radius,
-        y: 0,
-        sides: 6,
-        radius: radius,
-        fill: "orange",
-        stroke: "black",
-        strokeWidth: strokeWidth,
-        rotationDeg: 90,
-        opacity: .5
-    });  
-    return selectionHexagon;
-}
-
-function createClickedHex() {
-    var clickedHex = new Kinetic.RegularPolygon({
-        x: 0,
-        y: 0,
-        sides: 6,
-        radius: 70,
-        fill: "yellow",
-        stroke: "black",
-        strokeWidth: 4,
-        rotationDeg: 90,
-        opacity: .5
-    });  
-    clickedHex.off('click mousemove mouseout');
-    return clickedHex;
-}
-
-//Hasl.BoardHexSelectors = function(selUnit)
-//{
-//    var that = {};
-//    
-//    var mSelectionLayer = new Kinetic.Layer();
-//    that.getSelectionLayer = function() { return mSelectionLayer; }
-//    
-//    var mSelectedUnit = selUnit;
-//    
-//    var mSelectionGroup = new Kinetic.Group();
-//    var mClickedGroup = new Kinetic.Group();
-//    
-//    // TODO: with some coordinate transforms, this entire layer/concept seems unnecessary
-//    var mUnderlyingHexRepresentationLayer = new Kinetic.Layer();
-//    that.getUnderlyingHexRepresentationLayer = function() { return mUnderlyingHexRepresentationLayer; }
-//    
-//     var mHexDimensions = {
-//        radius: 37.5, 
-//        height: 32
-//    }; // measured from image
-//    
-//    that.drawBoard = function(selectedUnit, selectionGroup, clickedGroup)
-//    {
-//        var radius = mHexDimensions.radius; 
-//        var hexHeight = mHexDimensions.height;
-//
-//        var xOffset = radius;
-//        var nodeArray = board.getBoardGraph().getNodeArray();
-//        var numNodes = nodeArray.length;
-//    
-//        for(var i=0; i<numNodes; i++)
-//        {
-//            var yOffset = hexHeight;
-//            var isEvenHex = ((i+1) % 2 == 0);
-//            if(isEvenHex)
-//            {
-//                yOffset -= hexHeight;
-//            }
-//            for (var j=0; j<numNodes; j++)
-//            {
-//                if(nodeArray[i][j]) // != undefinded)
-//                {
-//                    var newHex = new Hasl.BoardHex (
-//                        { offset: { x: radius,   y: radius } },
-//                        radius, 
-//                        nodeArray[i][j],
-//                        useFills,
-//                        mSelectionGroup,
-//                        mSelectionLayer
-//                    );
-//                    newHex.move(xOffset, yOffset);
-//                    mUnderlyingHexRepresentationLayer.add(newHex);
-//                    yOffset += (hexHeight*2);
-//                    if(j > 0)
-//                    {
-//                        yOffset += 1;
-//                    }
-//                }
-//            
-//            }
-//            xOffset += radius+(radius*0.5);
-//        }
-//        
-//        mSelectionGroup.on("click", function() {
-//            console.log(selectedUnit);
-//            if(selectedUnit)
-//            {
-//                var radius = mHexDimensions.radius;
-//                var hexId = mSelectionGroup.name;
-//                var hex = mUnderlyingHexRepresentationLayer.get("#"+hexId)[0];
-//                if(hex)
-//                {
-//                    var hexGroup = hex.getParent();
-//                    var pos = hexGroup.getPosition();
-//
-//                    selectedUnit.transitionTo({
-//                        x: pos.x - radius*2,
-//                        y: pos.y - radius,
-//                        duration: 0.3,
-//                        easing: 'ease-in-out'
-//                    });
-//                    selectedUnit.getLayer().draw();
-//                }
-//            }
-//        });
-//        mSelectionGroup.on('mouseout', function() { 
-//            mSelectionGroup.removeChildren();
-//        });
-//        mSelectionLayer.add(mSelectionGroup);
-//        mSelectionLayer.add(mClickedGroup); 
-//    }
-//}
-

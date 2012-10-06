@@ -4,7 +4,9 @@ body {
 }
 canvas {
     border: 1px solid #9C9898;
-    overflow: scroll;
+}
+#container {
+    overflow: auto;
 }
 #info {
     /*border-top: 1px solid #9C9898;*/
