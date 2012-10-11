@@ -15,18 +15,19 @@
         <script src="./js/scenarios.js"></script>
         <script src="./js/terrains.js"></script>
         <script src="./js/terrainDatabase.js"></script>
-        
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
+        <script src="./js/player.js"></script>
         <script src="./js/game.js"></script>
         <script src="./js/utils.js"></script>
         <script>
             
             window.onload = function() {
                 var scenario = Hasl.Scenarios.Vierville;
-                var game = Hasl.GameInterface(scenario);
-                drawUnits(game, game.getUnitLayer(), game.getImageLoader());
-                game.draw();
+                var gameInterface = Hasl.GameInterface();
+                gameInterface.startScenario(scenario, false);
+                drawUnits(gameInterface, gameInterface.getUnitLayer(), gameInterface.getImageLoader());
+                gameInterface.draw();
             };
             
             // TODO: units should be stored in some sort of database

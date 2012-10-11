@@ -23,12 +23,14 @@
         <script src="./js/terrain.js"></script>
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
+        <script src="./js/player.js"></script>
         <script src="./js/game.js"></script>
         <script src="./js/utils.js"></script>
         <script>
             window.onload = function() {
                 var scenario = Hasl.Scenarios.Test;
-                Hasl.GameInterface(scenario, true);
+                var gameInterface = Hasl.GameInterface();
+                gameInterface.startScenario(scenario, true);
                 $("#graph").hide();
             };
         

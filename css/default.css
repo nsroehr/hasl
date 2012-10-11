@@ -1,12 +1,15 @@
 body {
     margin: 0px;
     padding: 0px;
+    
+    font-family: Arial,Helvetica,sans-serif;
 }
 canvas {
     border: 1px solid #9C9898;
 }
 #container {
     overflow: auto;
+    margin-left: 0.25em;
 }
 #info {
     /*border-top: 1px solid #9C9898;*/
@@ -21,4 +24,14 @@ canvas {
     margin-left: 0.25em;
     padding: 0px;
     display: inline;
+}
+.nonBreaking {
+    display: inline;
+}
+.someMargin {
+    margin-left: 2em;
+}
+#gameInfo {
+    padding: 0.25em 0.5em;
+    clear: both;
 }
