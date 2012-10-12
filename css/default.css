@@ -6,10 +6,11 @@ body {
 }
 canvas {
     border: 1px solid #9C9898;
+    margin-left: 0.25em;
 }
 #container {
     overflow: auto;
-    margin-left: 0.25em;
+    /*margin-left: 0.25em;*/
 }
 #info {
     /*border-top: 1px solid #9C9898;*/
@@ -34,4 +35,8 @@ canvas {
 #gameInfo {
     padding: 0.25em 0.5em;
     clear: both;
+}
+
+#reinforcements canvas {
+    padding-top: 0.25em;
 }

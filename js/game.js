@@ -301,6 +301,7 @@ Hasl.GameInterface = function()
     var mSelectionLayer = new Kinetic.Layer();
     var mUnitLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return mUnitLayer; }
+    
     var selectedUnit;
     that.setSelectedUnit = function(unit) { selectedUnit = unit; }
     that.getSelectedUnit = function() { return selectedUnit; }
@@ -374,48 +375,63 @@ Hasl.GameInterface = function()
         mStage.draw();
 
         turnChange();
-        
         if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
         {
-            var currentPlayer = mGame.getCurrentPlayer();
-            var reinforcements = currentPlayer.getReinforcements();
-            console.log(reinforcements);
-
-            // TODO: create a simple 'unit picker' here
-            //  - use another stage
-            //  - use same unit selection (or at least ideas)
-            //    * need to figure out how to identify these units (with player, within game)
-            //      . add an id, when added to player's 'hand'...?
-            //  - can units go back into 'picker'? likely not...
-            //    * once a unit it placed, it should just 'move' around on board
-            //  - this unit picker should be able to be reused in some manner for stack ordering and picking smaller 'sub-stacks'
-            //    * special cases for a single unit
-            //    * shown when stack is 'selected'?
-            //  - 
-            // rely on the unit picker for the event handling...
-
-            for(var i=0; i < reinforcements.length; i++)
-            {
-                var img;
-                if(i % 2 === 0)
-                {
-                    img = mImageLoader.getImage(Hasl.ImageSourceDatabase.american_2_e_fs);
-                }
-                else
-                {
-                    img = mImageLoader.getImage(Hasl.ImageSourceDatabase.german_1_e_hs);
-                }
-                console.log(img);
-                $('#reinforcements').append(img);
-                //imagesToAppend += img + " ";
-            }
-            
-            
-            
+            that.updateReinforcements();
         }
     }
     
+    var reinforcementPickerStage;
+    that.updateReinforcements = function()
+    {
+        if(reinforcementPickerStage)
+        {
+            reinforcementPickerStage.remove();
+        }
+        
+        var currentPlayer = mGame.getCurrentPlayer();
+        var reinforcements = currentPlayer.getReinforcements();
+        console.log(reinforcements);
+
+        // TODO: create a simple 'unit picker' here
+        //  - use another stage
+        //  - use same unit selection (or at least ideas)
+        //    * need to figure out how to identify these units (with player, within game)
+        //      . add an id, when added to player's 'hand'...?
+        //  - can units go back into 'picker'? likely not...
+        //    * once a unit it placed, it should just 'move' around on board
+        //  - this unit picker should be able to be reused in some manner for stack ordering and picking smaller 'sub-stacks'
+        //    * special cases for a single unit
+        //    * shown when stack is 'selected'?
+        //  - 
+        // rely on the unit picker for the event handling...
+        var unitPickerLayer = new Kinetic.Layer();
+        var unitPicker = Hasl.UnitPicker(reinforcements, unitPickerLayer, mImageLoader);
+
+        var unitPickerSize = unitPicker.getDimensions();
+        reinforcementPickerStage = new Kinetic.Stage({
+            container: 'reinforcements',
+            width: unitPickerSize.width,
+            height: unitPickerSize.height 
+        });
+        reinforcementPickerStage.add(unitPickerLayer);
+        reinforcementPickerStage.draw();
+    }
+    
     that.draw = function() { mStage.draw(); }
+    
+    var selectedHex;
+    that.selectHex = function(selector)
+    {
+        selectedHex = selector;
+        var hexId = selectedHex.hexId;
+        console.log(hexId);
+        if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
+        {
+            mGame.getCurrentPlayer().placeReinforcement(selectedUnit, hexId);
+        }
+        that.updateReinforcements();
+    }
     
     return that;
 };
@@ -626,6 +642,7 @@ Hasl.BoardHex = function(config, radius, graphNode, useFill, layer) {
         
         this.hexagon.on('click', function(){
             //Hasl.Orchestrator.selectHex(this.getParent().hexId);
+            mGameInterface.selectHex(this.getParent());
         });
     }
     this.fill = this.hexagon.getFill();

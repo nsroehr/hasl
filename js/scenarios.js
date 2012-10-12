@@ -1,24 +1,5 @@
 var Hasl = ( Hasl || {} );
-Hasl.Units =
-{
-    American:
-    {
-        fs_7_4_7_e: 0,
-        hs_3_7_3_e: 1,
-        ld_8_1: 2,
-        ld_8_0: 3,
-        ld_9_2: 4
-    },
-    German:
-    {
-        fs_4_6_7_1: 0,
-        fs_4_4_7_2: 1,
-        fs_5_4_8_e: 2,
-        ld_9_1: 3,
-        ld_8_1: 4,
-        ld_7_0: 5
-    }
-};
+
 
 Hasl.Boards = { Y: 'board_y', Test: 'test' };
 Hasl.BoardConfiguration = { Rotate90: 90 };
