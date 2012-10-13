@@ -268,6 +268,15 @@ Hasl.Game = function(scenario)
         mCurrentPhaseIndex = 0;
         mCurrentPhase = mGamePhases[mCurrentPhaseIndex];
     }
+    
+    that.getUnitsOnBoard = function()
+    {
+        var units = [];
+        units[0] = mPlayers[0].getPlacedUnits();
+        units[1] = mPlayers[1].getPlacedUnits();
+        return units;
+    }
+    
     return that;
 }
 
@@ -337,10 +346,12 @@ Hasl.GameInterface = function()
         phaseChange();
     }
     
+    var hexDimensions = { radius: 37.5,  height: 32, distBetweenCenters: 28.5 };
+    
     that.startScenario = function(scenario, useFills)
     {
         mGame = Hasl.Game(scenario);
-
+        
         // TODO: modularize all this crap...there needs to be a division between
         // board setup and phase setup and unit setup
         mStage = new Kinetic.Stage({
@@ -349,7 +360,6 @@ Hasl.GameInterface = function()
             height: 645 
         });
         
-        var hexDimensions = { radius: 37.5,  height: 32, distBetweenCenters: 28.5 };
         var boardNodeArray = mGame.getBoard().getBoardGraph().getNodeArray();
         if(useFills)
         {
@@ -375,10 +385,30 @@ Hasl.GameInterface = function()
         mStage.draw();
 
         turnChange();
+        
         if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
         {
             that.updateReinforcements();
         }
+    }
+    
+    that.updateUnits = function()
+    {
+        mUnitLayer.removeChildren();
+        var allUnitsOnBoardByPlayer = mGame.getUnitsOnBoard();
+        for(var i=0; i < allUnitsOnBoardByPlayer[0].length; i++)
+        {
+            var unitStack = allUnitsOnBoardByPlayer[0][i];
+            var unitStackNode = createUnitStack(unitStack, mImageLoader);    
+            mUnitLayer.add(unitStackNode);
+        }
+        for(i=0; i < allUnitsOnBoardByPlayer[1].length; i++)
+        {
+            unitStack = allUnitsOnBoardByPlayer[1][i];
+            unitStackNode = createUnitStack(unitStack, mImageLoader);    
+            mUnitLayer.add(unitStackNode);
+        }
+        mUnitLayer.draw();
     }
     
     var reinforcementPickerStage;
@@ -386,52 +416,67 @@ Hasl.GameInterface = function()
     {
         if(reinforcementPickerStage)
         {
-            reinforcementPickerStage.remove();
+            $('#reinforcements').empty();
+            reinforcementPickerStage.removeChildren();
         }
         
         var currentPlayer = mGame.getCurrentPlayer();
         var reinforcements = currentPlayer.getReinforcements();
-        console.log(reinforcements);
+        if(reinforcements.length > 0)
+        {
+            // TODO: create a simple 'unit picker' here
+            //  - use another stage
+            //  - use same unit selection (or at least ideas)
+            //    * need to figure out how to identify these units (with player, within game)
+            //      . add an id, when added to player's 'hand'...?
+            //  - can units go back into 'picker'? likely not...
+            //    * once a unit it placed, it should just 'move' around on board
+            //  - this unit picker should be able to be reused in some manner for stack ordering and picking smaller 'sub-stacks'
+            //    * special cases for a single unit
+            //    * shown when stack is 'selected'?
+            //  - 
+            // rely on the unit picker for the event handling...
+            var unitPickerLayer = new Kinetic.Layer();
+            var unitPicker = Hasl.UnitPicker(reinforcements, unitPickerLayer, mImageLoader);
 
-        // TODO: create a simple 'unit picker' here
-        //  - use another stage
-        //  - use same unit selection (or at least ideas)
-        //    * need to figure out how to identify these units (with player, within game)
-        //      . add an id, when added to player's 'hand'...?
-        //  - can units go back into 'picker'? likely not...
-        //    * once a unit it placed, it should just 'move' around on board
-        //  - this unit picker should be able to be reused in some manner for stack ordering and picking smaller 'sub-stacks'
-        //    * special cases for a single unit
-        //    * shown when stack is 'selected'?
-        //  - 
-        // rely on the unit picker for the event handling...
-        var unitPickerLayer = new Kinetic.Layer();
-        var unitPicker = Hasl.UnitPicker(reinforcements, unitPickerLayer, mImageLoader);
+            var unitPickerSize = unitPicker.getDimensions();
+            reinforcementPickerStage = new Kinetic.Stage({
+                container: 'reinforcements',
+                width: unitPickerSize.width,
+                height: unitPickerSize.height 
+            });
+            reinforcementPickerStage.add(unitPickerLayer);
+            reinforcementPickerStage.draw();
+        }
+    }
+    
+    var selectedHex;
+    that.selectHex = function(hexSelector)
+    {
+        selectedHex = hexSelector;
+        var hexCenter = 
+        {
+            x: selectedHex.getX() - hexDimensions.radius,
+            y: selectedHex.getY()
+        }
+//        console.log(hexCenter);
+        
+        var hexId = selectedHex.hexId;
+//        console.log(hexId);
 
-        var unitPickerSize = unitPicker.getDimensions();
-        reinforcementPickerStage = new Kinetic.Stage({
-            container: 'reinforcements',
-            width: unitPickerSize.width,
-            height: unitPickerSize.height 
-        });
-        reinforcementPickerStage.add(unitPickerLayer);
-        reinforcementPickerStage.draw();
+        if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
+        {
+            if(selectedUnit)
+            {
+                mGame.getCurrentPlayer().placeReinforcement(selectedUnit, hexId, hexCenter);
+                selectedUnit = undefined;
+            }
+        }
+        that.updateReinforcements();
+        that.updateUnits();
     }
     
     that.draw = function() { mStage.draw(); }
-    
-    var selectedHex;
-    that.selectHex = function(selector)
-    {
-        selectedHex = selector;
-        var hexId = selectedHex.hexId;
-        console.log(hexId);
-        if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
-        {
-            mGame.getCurrentPlayer().placeReinforcement(selectedUnit, hexId);
-        }
-        that.updateReinforcements();
-    }
     
     return that;
 };

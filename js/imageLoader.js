@@ -1,8 +1,10 @@
 var Hasl = ( Hasl || {} );
+
+// TODO: add broken images
 Hasl.ImageSourceDatabase = 
 {
-    american_2_e_fs: {value: 0, source:"./assets/ame_2_e_fs.png", width: 72, height: 72},
-    german_1_e_hs:   {value: 1, source:"./assets/ger_1_e_hs.png", width: 72, height: 72},
+    american_2_e_fs: {value: 0, source:"./assets/ame_2_e_fs.png", width: 72, height: 72, broken: ''},
+    german_1_e_hs:   {value: 1, source:"./assets/ger_1_e_hs.png", width: 72, height: 72, broken: ''},
     board_y:         {value: 2, source:"./assets/boardYrasterized.png", width: 1800, height: 648, 
                       hex: { radius: 37.5,  height: 32, distBetweenCenters: 28.5 } 
                      }

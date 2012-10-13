@@ -41,7 +41,6 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
     {
         //var unit = pickableUnits[i];
         var unitImage = Hasl.UnitUtils.getUnitImage(imageLoader);
-        console.log(unitImage);
         var selectableUnit = createSelectableSingleUnit({
             x: offset,
             y: 0,
@@ -65,6 +64,41 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
     }
     
     return that;
+}
+
+function createUnitStack(unitStack, imageLoader, isSelectable)
+{
+    var unitsInStack = unitStack.getUnitsInStack();
+    var perUnitOffset = -2;
+    var unitOnBoardScalar = 0.625; //6666666;
+    var unitImageDimensions = 
+    {
+        width:  Hasl.ImageSourceDatabase.american_2_e_fs.width * unitOnBoardScalar, 
+        height: Hasl.ImageSourceDatabase.american_2_e_fs.height * unitOnBoardScalar
+    };
+    
+    var stack = new Kinetic.Group();
+    var currentOffset = 0;
+    for(var i=0; i < unitsInStack.length; i++)
+    {
+        var unitImageSrc = Hasl.UnitUtils.getUnitImage(imageLoader);
+        var specOffsetX = currentOffset-(unitImageDimensions.width*.5);
+        var specOffsetY = currentOffset-(unitImageDimensions.height*.5);
+        var spec = {
+            x: specOffsetX,
+            y: specOffsetY,
+            image: unitImageSrc,
+            width: unitImageDimensions.width,
+            height: unitImageDimensions.height
+        };
+        var unitImage = new Kinetic.Image(spec);
+        stack.add(unitImage);
+        currentOffset += perUnitOffset;
+    }
+    var stackPos = unitStack.getLocation().position;
+
+    stack.setPosition(stackPos);
+    return stack;
 }
 
 // TODO: when a unit it 'placed' on the board, it will be 'stacked'

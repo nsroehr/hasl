@@ -4,29 +4,29 @@
         <meta charset="UTF-8" />
         <link rel="stylesheet" type="text/css" href="css/default.css" />
         <script src="./js/dracula/jquery-1.4.2.min.js"></script>
-        <script src="./js/kineticJS/kinetic-v4.0.1.js"></script>
+        <script src="./js/kineticJS/kinetic-v4.0.3.min.js"></script>
         <script src="./js/dracula/raphael-min.js"></script>
-        <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
+        <script src="./js/dracula/dracula_graffle.js"></script>
         <script src="./js/dracula/dracula_graph.js"></script>
         <!-- 
             TODO: remove me please! 
             <script src="./js/boardGraph.js"></script>
         -->
+        <script src="./js/unit.js"></script>
         <script src="./js/scenarios.js"></script>
         <script src="./js/terrains.js"></script>
         <script src="./js/terrainDatabase.js"></script>
         <script src="./js/boardSetup.js"></script>
         <script src="./js/imageLoader.js"></script>
         <script src="./js/player.js"></script>
-        <script src="./js/unit.js"></script>
+        
         <script src="./js/game.js"></script>
         <script src="./js/utils.js"></script>
         <script>
             window.onload = function()
             {
                 var scenario = Hasl.Scenarios.Vierville;
-                var gameInterface = Hasl.GameInterface();
-                gameInterface.startScenario(scenario, false);
+                mGameInterface.startScenario(scenario, false);
             }
             
             function done()
@@ -40,6 +40,7 @@
             <p id="player" class="nonBreaking">|player|</p>
             <p id="phase" class="nonBreaking someMargin">|phase|</p>
             <p id="turn" class="nonBreaking someMargin">|turn|</p>
+            <!--<p id="debug" class="nonBreaking someMargin"></p>-->
         </div>
         <div id="container"></div>
         <div id="controls">

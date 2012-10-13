@@ -6,16 +6,17 @@
         <link rel="stylesheet" type="text/css" href="css/default.css" />
         <script src="./js/dracula/jquery-1.4.2.min.js"></script>
         <!--  The Raphael JavaScript library for vector graphics display  -->
-        <script src="./js/kineticJS/kinetic-v4.0.1.js"></script>
+        <script src="./js/kineticJS/kinetic-v4.0.3.min.js"></script>
         <!--  The Raphael JavaScript library for vector graphics display  -->
         <script src="./js/dracula/raphael-min.js"></script>
         <!--  Dracula  -->
         <!--  An extension of Raphael for connecting shapes -->
-        <script type="text/javascript" src="./js/dracula/dracula_graffle.js"></script>
+        <script src="./js/dracula/dracula_graffle.js"></script>
         <!--  Graphs  -->
         <script src="./js/dracula/dracula_graph.js"></script>
         <script src="./js/dracula/dracula_algorithms.js"></script>
 
+        <script src="./js/unit.js"></script>
         <script src="./js/scenarios.js"></script>
         <script src="./js/terrains.js"></script>
         <script src="./js/terrainDatabase.js"></script>
@@ -29,8 +30,7 @@
         <script>
             window.onload = function() {
                 var scenario = Hasl.Scenarios.Test;
-                var gameInterface = Hasl.GameInterface();
-                gameInterface.startScenario(scenario, true);
+                mGameInterface.startScenario(scenario, true);
                 $("#graph").hide();
             };
         
