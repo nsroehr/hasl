@@ -128,6 +128,7 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
             {
                 changeSelection(selectedUnitImage);
             }
+            mGameInterface.setSelectedUnits(mSelectedUnits);
             that.draw();
         };
     };

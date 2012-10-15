@@ -20,7 +20,7 @@ Hasl.Player = function(playerType)
     };
     
     // TODO: how do you move a reinforcement that's already placed?
-    that.placeReinforcement = function(unit, placementHexId, hexCenter)
+    that.placeReinforcements = function(units, placementHexId, hexCenter)
     {
         var addedToExistingStack = false;
         for(var i = 0; i < unitStacks.length; i++)
@@ -28,7 +28,7 @@ Hasl.Player = function(playerType)
             var unitStack = unitStacks[i];
             if(unitStack.getLocation().hexId === placementHexId)
             {
-                unitStack.addUnit(unit);
+                unitStack.addUnits(units);
                 addedToExistingStack = true;
             }
         }
@@ -36,14 +36,17 @@ Hasl.Player = function(playerType)
         {
             // didn't find an existing stack at this location, add new stack
             var newUnitStack = Hasl.UnitStack();
-            newUnitStack.addUnit(unit);
+            newUnitStack.addUnits(units);
             newUnitStack.setLocation({hexId: placementHexId, position: hexCenter});
             unitStacks.push(newUnitStack);
         }
-        unit.setIsReinforcement(false);
+//        units.setIsReinforcement(false);
         
-        var unitIndex = reinforcementUnits.indexOf(unit);
-        reinforcementUnits.remove(unitIndex);
+        //var unitIndex = reinforcementUnits.indexOf(unit);
+        for(i=0; i< units.length; i++)
+        {
+            reinforcementUnits.remove(units[i]);
+        }
     };
     
     that.getReinforcements = function()
@@ -63,7 +66,7 @@ Hasl.Player = function(playerType)
 Hasl.UnitStack = function()
 {
     var that = {};
-    var units = new Array();
+    var units = [];
     var location = {hexId: 'A0', position: {x: 0, y: 0}};
     
     that.getLocation = function()
@@ -90,6 +93,15 @@ Hasl.UnitStack = function()
     {
         return 6;
     };
+    
+    that.addUnits = function(unitsToAdd)
+    {
+        console.log(unitsToAdd);
+        console.log(units);
+        units = units.concat(unitsToAdd);
+        console.log(units);
+        return units;
+    }
     
     that.addUnit = function(unit)
     {

@@ -282,7 +282,6 @@ Hasl.Game = function(scenario)
 
 
 // TODO:
-// BoardRendering (including hex selectors)
 // UnitRendering (given current player)
 // User input handling (unit selection, hex selection)
 //  -> resulting updates to base-models (game, player, unit)
@@ -311,9 +310,13 @@ Hasl.GameInterface = function()
     var mUnitLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return mUnitLayer; }
     
-    var selectedUnitImage;
-    that.setSelectedUnit = function(unit) { selectedUnitImage = unit; }
-    that.getSelectedUnit = function() { return selectedUnitImage; }
+    var selectedUnits;
+    that.setSelectedUnits = function(units) 
+    { 
+        selectedUnits = units;
+        that.updateUnits();
+    }
+    that.getSelectedUnit = function() { return selectedUnits; }
     
     var phaseChange = function() 
     {
@@ -397,22 +400,21 @@ Hasl.GameInterface = function()
     {
         mUnitLayer.removeChildren();
         var allUnitsOnBoardByPlayer = mGame.getUnitsOnBoard();
-        for(var i=0; i < allUnitsOnBoardByPlayer[0].length; i++)
+        for(var playerId=0; playerId < 2; playerId++)
         {
-            var unitStack = allUnitsOnBoardByPlayer[0][i];
-            var unitStackNode = createUnitStack(unitStack, mImageLoader);    
-            mUnitLayer.add(unitStackNode);
-        }
-        for(i=0; i < allUnitsOnBoardByPlayer[1].length; i++)
-        {
-            unitStack = allUnitsOnBoardByPlayer[1][i];
-            unitStackNode = createUnitStack(unitStack, mImageLoader);    
-            mUnitLayer.add(unitStackNode);
+            console.log('Player ' + playerId + ': has ' + allUnitsOnBoardByPlayer[playerId].length + ' unit stacks on the board.');
+            for(var i=0; i < allUnitsOnBoardByPlayer[playerId].length; i++)
+            {
+                var unitStack = allUnitsOnBoardByPlayer[playerId][i];
+                var unitStackNode = createUnitStack(unitStack, mImageLoader);    
+                mUnitLayer.add(unitStackNode);
+            }   
         }
         mUnitLayer.draw();
     }
     
     var reinforcementPickerStage;
+    var reinforcementPicker;
     that.updateReinforcements = function()
     {
         if(reinforcementPickerStage)
@@ -425,22 +427,10 @@ Hasl.GameInterface = function()
         var reinforcements = currentPlayer.getReinforcements();
         if(reinforcements.length > 0)
         {
-            // TODO: create a simple 'unit picker' here
-            //  - use another stage
-            //  - use same unit selection (or at least ideas)
-            //    * need to figure out how to identify these units (with player, within game)
-            //      . add an id, when added to player's 'hand'...?
-            //  - can units go back into 'picker'? likely not...
-            //    * once a unit it placed, it should just 'move' around on board
-            //  - this unit picker should be able to be reused in some manner for stack ordering and picking smaller 'sub-stacks'
-            //    * special cases for a single unit
-            //    * shown when stack is 'selected'?
-            //  - 
-            // rely on the unit picker for the event handling...
             var unitPickerLayer = new Kinetic.Layer();
-            var unitPicker = Hasl.UnitPicker(reinforcements, unitPickerLayer, mImageLoader);
+            reinforcementPicker = Hasl.UnitPicker(reinforcements, unitPickerLayer, mImageLoader);
 
-            var unitPickerSize = unitPicker.getDimensions();
+            var unitPickerSize = reinforcementPicker.getDimensions();
             reinforcementPickerStage = new Kinetic.Stage({
                 container: 'reinforcements',
                 width: unitPickerSize.width,
@@ -465,29 +455,18 @@ Hasl.GameInterface = function()
         
         if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
         {
-            if(selectedUnitImage)
+            if(selectedUnits)
             {
-                var unit = selectedUnitImage.getUnit();
-                console.log(selectedUnitImage);
-//                if(typeof selectedUnitImage.getIsReinforcement === 'function')
-//                {
-                    if(unit.getIsReinforcement())
-                    {
-                        console.log('calling placeReinforcement');
-                        console.log(unit);
-                        mGame.getCurrentPlayer().placeReinforcement(unit, hexId, hexCenter);
-                        selectedUnitImage = undefined;
-
-                        that.updateReinforcements();
-                    }
-//                }
-                else
+                var units = [];
+                for(var i=0; i < selectedUnits.length; i++)
                 {
-                    console.log('not done: need to move an already placed unit');
+                    units.push(selectedUnits[i].getUnit());
                 }
+                mGame.getCurrentPlayer().placeReinforcements(units, hexId, hexCenter);
+                that.updateReinforcements();
+                selectedUnits = undefined;
             }
         }
-        
         that.updateUnits();
     }
     
