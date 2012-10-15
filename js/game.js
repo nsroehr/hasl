@@ -310,14 +310,30 @@ Hasl.GameInterface = function()
     var mUnitLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return mUnitLayer; }
     
-    var selectedUnits;
+    var mSelectedUnits;
+    that.getSelectedUnits = function() { return mSelectedUnits; }
     that.setSelectedUnits = function(units) 
     { 
-        selectedUnits = units;
+        mSelectedUnits = units;
         that.updateUnits();
     }
-    that.getSelectedUnit = function() { return selectedUnits; }
-    
+
+    var mSelectedUnitStack;
+    that.getSelectedUnitStack = function() { return mSelectedUnitStack; }
+    that.setSelectedUnitStack = function(unitStack)
+    {
+        if(unitStack !== undefined)
+        {
+            mSelectedUnits = unitStack.getUnitsInStack();
+        }
+        else
+        {
+            mSelectedUnits = undefined;
+        }
+        
+        mSelectedUnitStack = unitStack;
+    }
+
     var phaseChange = function() 
     {
         var elem = $('#phase')
@@ -445,31 +461,47 @@ Hasl.GameInterface = function()
     that.selectHex = function(hexSelector)
     {
         selectedHex = hexSelector;
-        var hexCenter = 
-        {
-            x: selectedHex.getX() - hexDimensions.radius,
-            y: selectedHex.getY()
-        }
-
         var hexId = selectedHex.hexId;
         
         if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
         {
-            if(selectedUnits)
+            if(mSelectedUnits && !mSelectedUnitStack)
             {
                 var units = [];
-                for(var i=0; i < selectedUnits.length; i++)
+                for(var i=0; i < mSelectedUnits.length; i++)
                 {
-                    units.push(selectedUnits[i].getUnit());
+                    units.push(mSelectedUnits[i].getUnit());
                 }
-                mGame.getCurrentPlayer().placeReinforcements(units, hexId, hexCenter);
+                mGame.getCurrentPlayer().placeReinforcements(units, hexId);
                 that.updateReinforcements();
-                selectedUnits = undefined;
+                mSelectedUnits = undefined;
+            }
+            else if(mSelectedUnitStack)
+            {
+                mGame.getCurrentPlayer().placeUnitStack(mSelectedUnitStack.getUnitStack(), hexId);
+                that.setSelectedUnitStack(undefined);
             }
         }
         that.updateUnits();
     }
     
+    that.getHexCenter = function(hexId)
+    {
+        var selectionLayerChildren = mSelectionLayer.getChildren();
+        
+        for(var i=0; i < selectionLayerChildren.length; i++)
+        {
+            var child = selectionLayerChildren[i];
+            if(child.hexId === hexId)
+            {
+                return {
+                    x: child.getX() - hexDimensions.radius,
+                    y: child.getY()
+                };
+            }
+        }
+        return undefined;
+    }
     that.draw = function() { mStage.draw(); }
     
     return that;

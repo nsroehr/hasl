@@ -54,7 +54,7 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
     
     that.draw = function()
     {
-        console.log(mSelectedUnits);
+//        console.log(mSelectedUnits);
         for(var i=0; i < mSelectableUnits.length; i++)
         {
             var selectableUnitImage = mSelectableUnits[i];
@@ -147,7 +147,6 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
                 height: imageDimensions.height
             }
         );
-        selectableUnit.setIsReinforcement(unit.getIsReinforcement());
         selectableUnit.on('mousemove', function() {
             document.body.style.cursor = "pointer";
         });
@@ -180,7 +179,8 @@ Hasl.UnitPicker = function(pickableUnits, kineticLayer, imageLoader, orientation
 function createUnitStack(unitStack, imageLoader, isSelectable)
 {
     // TODO: encapsulte this (it's all precalculatable...)
-    var unitsInStack = unitStack.getUnitsInStack();
+    var mUnitStack = unitStack;
+    var mUnitsInStack = unitStack.getUnitsInStack();
     var perUnitOffset = -2;
     var unitOnBoardScalar = 0.625; //6666666;
     var unitImageDimensions = 
@@ -191,7 +191,7 @@ function createUnitStack(unitStack, imageLoader, isSelectable)
     
     var stack = new Kinetic.Group();
     var currentOffset = 0;
-    for(var i=0; i < unitsInStack.length; i++)
+    for(var i=0; i < mUnitsInStack.length; i++)
     {
         var unitImageSrc = Hasl.UnitUtils.getUnitImage(imageLoader);
         var specOffsetX = currentOffset-(unitImageDimensions.width*.5);
@@ -207,8 +207,6 @@ function createUnitStack(unitStack, imageLoader, isSelectable)
         stack.add(unitImage);
         currentOffset += perUnitOffset;
     }
-    var stackPos = unitStack.getLocation().position;
-
     stack.setShadow = function(shadowSpec)
     {
         var units = stack.getChildren();
@@ -225,48 +223,63 @@ function createUnitStack(unitStack, imageLoader, isSelectable)
         }
     }
 
-//    stack.on('mousemove', function() {
-//        document.body.style.cursor = "pointer";
-//    });
-//    stack.on('click', function() {
-//        //mGameInterface.setSelectedUnit(unit);
-//        var selectedStack = mGameInterface.getSelectedUnit()
-//        if(selectedStack)
-//        {
-//            selectedStack.setShadow({
-//                color: 'transparent',
-//                blur: 3,
-//                offset: [3, 3],
-//                opacity: 0.5
-//            });
-//            selectedStack.setScale([1,1]);
-//        }
-//        var unitUnSelected = (selectedStack == stack);
-//        if(unitUnSelected)
-//        {
-//            $('#selectedUnit').attr('src', '');
-//            mGameInterface.setSelectedUnit(undefined);
-//            stack.getLayer().draw();
-//            return;
-//        }
-//        selectedStack = stack;
-//        selectedStack.setScale([1.1,1.1]);
-//        selectedStack.setShadow({
-//            color: 'black',
-//            blur: 3,
-//            offset: [3, 3],
-//            opacity: 0.5
-//        });
-//        stack.getLayer().draw();
-//
-//        $('#selectedUnit').attr('src', stack.getId())
-//        mGameInterface.setSelectedUnit(selectedStack);
-//    });
-//    stack.on('mouseout', function(){
-//        document.body.style.cursor = "default"; 
-//    });
+    stack.on('mousemove', function() {
+        document.body.style.cursor = "pointer";
+    });
+    stack.on('click', function() {
+        var selectedStack = mGameInterface.getSelectedUnitStack()
+        if(selectedStack)
+        {
+            selectedStack.setShadow({
+                color: 'transparent',
+                blur: 3,
+                offset: [3, 3],
+                opacity: 0.5
+            });
+            selectedStack.setScale([1,1]);
+        }
+        var unitUnSelected = (selectedStack == stack);
+        if(unitUnSelected)
+        {
+            $('#selectedUnit').attr('src', '');
+            mGameInterface.setSelectedUnitStack(undefined);
+            stack.getLayer().draw();
+            return;
+        }
+        selectedStack = stack;
+        selectedStack.setScale([1.1,1.1]);
+        selectedStack.setShadow({
+            color: 'black',
+            blur: 3,
+            offset: [3, 3],
+            opacity: 0.5
+        });
+        stack.getLayer().draw();
 
-    stack.setPosition(stackPos);
+        $('#selectedUnit').attr('src', stack.getId())
+        mGameInterface.setSelectedUnitStack(selectedStack);
+    });
+    stack.on('mouseout', function(){
+        document.body.style.cursor = "default"; 
+    });
+
+    var stackLocation = mGameInterface.getHexCenter(unitStack.getLocation());
+    console.log(stackLocation);
+
+    stack.setPosition(stackLocation);
+    
+    stack.getUnitStack = function()
+    {
+        return mUnitStack;
+    }
+    stack.getUnitsInStack = function()
+    {
+        return mUnitsInStack;
+    }
+    stack.moveUnitStack = function(hexId)
+    {
+        mUnitStack.setLocation(hexId);
+    }
     return stack;
 }
 
@@ -275,9 +288,6 @@ function createSelectableSingleUnit(unit, unitIndex, spec)
     var mUnit = unit;
     var mIndex = unitIndex;
     var mUnitImage = new Kinetic.Image(spec);
-    
-    mUnitImage.getIsReinforcement = mUnit.getIsReinforcement;
-    mUnitImage.setIsReinforcement = mUnit.setIsReinforcement;
     
     mUnitImage.getUnit = function() { return mUnit; }
     mUnitImage.getIndex = function() { return mIndex; }

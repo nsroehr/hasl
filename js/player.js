@@ -12,24 +12,22 @@ Hasl.Player = function(playerType)
     {
         for(var i=0; i < reinforcements.length; i++)
         {
-//            console.log('adding reinforcements');
-            var isReinforcement = true;
-            var unit = Hasl.Unit(reinforcements[i], isReinforcement);
+            var unit = Hasl.Unit(reinforcements[i]); //, isReinforcement);
             reinforcementUnits.push(unit);
         }
     };
     
-    // TODO: how do you move a reinforcement that's already placed?
-    that.placeReinforcements = function(units, placementHexId, hexCenter)
+    that.placeReinforcements = function(units, placementHexId) //, hexCenter)
     {
         var addedToExistingStack = false;
         for(var i = 0; i < unitStacks.length; i++)
         {
             var unitStack = unitStacks[i];
-            if(unitStack.getLocation().hexId === placementHexId)
+            if(unitStack.getLocation() === placementHexId)
             {
                 unitStack.addUnits(units);
                 addedToExistingStack = true;
+                break;
             }
         }
         if(!addedToExistingStack)
@@ -37,21 +35,39 @@ Hasl.Player = function(playerType)
             // didn't find an existing stack at this location, add new stack
             var newUnitStack = Hasl.UnitStack();
             newUnitStack.addUnits(units);
-            newUnitStack.setLocation({hexId: placementHexId, position: hexCenter});
+            newUnitStack.setLocation(placementHexId);
             unitStacks.push(newUnitStack);
         }
-//        units.setIsReinforcement(false);
-        
-        //var unitIndex = reinforcementUnits.indexOf(unit);
         for(i=0; i< units.length; i++)
         {
             reinforcementUnits.remove(units[i]);
         }
     };
+    that.placeUnitStack = function(unitStack, placementHexId)
+    {
+        var addedToExistingStack = false;
+        for(var i = 0; i < unitStacks.length; i++)
+        {
+            var currentUnitStack = unitStacks[i];
+            if(currentUnitStack.getLocation() === placementHexId)
+            {
+                currentUnitStack.addUnits(unitStack.getUnitsInStack());
+                addedToExistingStack = true;
+                break;
+            }
+        }
+        if(addedToExistingStack)
+        {
+            unitStacks.remove(unitStack);
+        }
+        else
+        {
+            unitStack.setLocation(placementHexId);
+        }
+    }
     
     that.getReinforcements = function()
     {
-//        console.log(reinforcementUnits[0].getIsReinforcement());
         return reinforcementUnits;
     }
     
@@ -66,22 +82,22 @@ Hasl.Player = function(playerType)
 Hasl.UnitStack = function()
 {
     var that = {};
-    var units = [];
-    var location = {hexId: 'A0', position: {x: 0, y: 0}};
+    var mUnits = [];
+    var mHexLocation = 'A0';
     
     that.getLocation = function()
     {
-        return location;
+        return mHexLocation;
     };
     
     that.setLocation = function(placementLocationHex)
     {
-        location = placementLocationHex;
+        mHexLocation = placementLocationHex;
     }
     
     that.getUnitsInStack = function()
     {
-        return units;
+        return mUnits;
     };
     
     that.getMovementPoints = function()
@@ -96,51 +112,35 @@ Hasl.UnitStack = function()
     
     that.addUnits = function(unitsToAdd)
     {
-        console.log(unitsToAdd);
-        console.log(units);
-        units = units.concat(unitsToAdd);
-        console.log(units);
-        return units;
+        mUnits = mUnits.concat(unitsToAdd);
+        return mUnits;
     }
     
     that.addUnit = function(unit)
     {
-        units.push(unit);
-        return units;
+        mUnits.push(unit);
+        return mUnits;
     };
     
     that.removeUnit = function(unit)
     {
-        units.remove(unit);
+        mUnits.remove(unit);
     };
     
     that.moveStack = function(hexGridLocation)
     {
-        location = hexGridLocation;
+        mHexLocation = hexGridLocation;
     };
     return that;
 };
 
-Hasl.Unit = function(spec, isReinforcement)
+Hasl.Unit = function(spec)
 {
-//    console.log('unit spec is: ' + spec.toString() + ' reinforcement: ' + isReinforcement);
-    
     var that = {};
     var mType = spec.type;
-    var mIsReinforcement = isReinforcement;
     that.getType = function()
     {
         return mType;
-    };
-    that.getIsReinforcement = function()
-    {
-//        console.log('getIsReinforcement called: ' + mIsReinforcement.toString());
-        return mIsReinforcement;
-    };
-    that.setIsReinforcement = function(_isReinforcement)
-    {
-//        console.log('setIsReinforcement called: ' + _isReinforcement.toString());
-        mIsReinforcement = _isReinforcement;
     };
     return that;
 };
