@@ -311,9 +311,9 @@ Hasl.GameInterface = function()
     var mUnitLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return mUnitLayer; }
     
-    var selectedUnit;
-    that.setSelectedUnit = function(unit) { selectedUnit = unit; }
-    that.getSelectedUnit = function() { return selectedUnit; }
+    var selectedUnitImage;
+    that.setSelectedUnit = function(unit) { selectedUnitImage = unit; }
+    that.getSelectedUnit = function() { return selectedUnitImage; }
     
     var phaseChange = function() 
     {
@@ -392,6 +392,7 @@ Hasl.GameInterface = function()
         }
     }
     
+    // TODO: fix this crap!
     that.updateUnits = function()
     {
         mUnitLayer.removeChildren();
@@ -459,20 +460,34 @@ Hasl.GameInterface = function()
             x: selectedHex.getX() - hexDimensions.radius,
             y: selectedHex.getY()
         }
-//        console.log(hexCenter);
-        
-        var hexId = selectedHex.hexId;
-//        console.log(hexId);
 
+        var hexId = selectedHex.hexId;
+        
         if(mGame.getCurrentPhase() === Hasl.GamePhases.Setup)
         {
-            if(selectedUnit)
+            if(selectedUnitImage)
             {
-                mGame.getCurrentPlayer().placeReinforcement(selectedUnit, hexId, hexCenter);
-                selectedUnit = undefined;
+                var unit = selectedUnitImage.getUnit();
+                console.log(selectedUnitImage);
+//                if(typeof selectedUnitImage.getIsReinforcement === 'function')
+//                {
+                    if(unit.getIsReinforcement())
+                    {
+                        console.log('calling placeReinforcement');
+                        console.log(unit);
+                        mGame.getCurrentPlayer().placeReinforcement(unit, hexId, hexCenter);
+                        selectedUnitImage = undefined;
+
+                        that.updateReinforcements();
+                    }
+//                }
+                else
+                {
+                    console.log('not done: need to move an already placed unit');
+                }
             }
         }
-        that.updateReinforcements();
+        
         that.updateUnits();
     }
     

@@ -5,9 +5,27 @@ Utils.Pair = function(first, second) {
 };
 
 Array.prototype.remove = function(from, to) {
+    if(typeof from !== 'number')
+    {
+        var index = this.indexOf(from);
+        if(index === -1)
+        {
+            return this; // item not in array
+        }
+        else
+        {
+            from = index;
+        }
+    }
     var rest = this.slice((to || from) + 1 || this.length);
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
+};
+
+
+Array.prototype.removeAll = function() {
+    this.length = 0;
+    //return this.slice(0, this.length);
 };
 
 function IsNumeric(input)
