@@ -36,20 +36,30 @@
         </script>
     </head>
     <body>
-        <div id="gameInfo">
-            <p id="player" class="nonBreaking">|player|</p>
-            <p id="phase" class="nonBreaking someMargin">|phase|</p>
-            <p id="turn" class="nonBreaking someMargin">|turn|</p>
-            <!--<p id="debug" class="nonBreaking someMargin"></p>-->
-        </div>
-        <div id="container"></div>
-        <div id="controls">
-            <button id="done" onclick="done();">done</button>
-        </div>
-        <div id="reinforcements"></div>
-        <div id="info">
-            <img id="selectedUnit" src=""/>
-            <p id="terrainInfo"></p>
-        </div>
+        <article>
+            <header>
+                <div id="gameInfo">
+                    <p id="player" class="nonBreaking">|player|</p>
+                    <p id="phase" class="nonBreaking someMargin">|phase|</p>
+                    <p id="turn" class="nonBreaking someMargin">|turn|</p>
+                    <!--<p id="debug" class="nonBreaking someMargin"></p>-->
+                </div>
+            </header>
+            <div id="main" class="clearfix">
+                <div id="board"></div>
+                <aside id="side">
+                    <div id="info">
+                        <img id="selectedUnit" src=""/>
+                        <p id="terrainInfo"></p>
+                    </div>
+                </aside>
+            </div>
+            <footer class="clearfix">
+                <div id="controls">
+                    <button id="done" onclick="done();">done</button>
+                </div>
+                <div id="reinforcements"><h1>Reinforcements</h1></div>
+            </footer>
+        </article>
     </body>
 </html>

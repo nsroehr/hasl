@@ -308,6 +308,7 @@ Hasl.GameInterface = function()
     var mBoardRenderer;
     var mSelectionLayer = new Kinetic.Layer();
     var mUnitLayer = new Kinetic.Layer();
+    var mUnitPickerLayer = new Kinetic.Layer();
     that.getUnitLayer = function() { return mUnitLayer; }
     
     var mSelectedUnits;
@@ -374,7 +375,7 @@ Hasl.GameInterface = function()
         // TODO: modularize all this crap...there needs to be a division between
         // board setup and phase setup and unit setup
         mStage = new Kinetic.Stage({
-            container: "container",
+            container: "board",
             width: 1800,
             height: 645 
         });
@@ -396,6 +397,7 @@ Hasl.GameInterface = function()
         mStage.add(mBoardRenderer.getBoardLayer());
         mStage.add(mSelectionLayer);
         mStage.add(mUnitLayer);
+        mStage.add(mUnitPickerLayer);
                 
         var mStageZoomScalar = 1.0;
         var mBoardSize = mBoardRenderer.getSize();
@@ -502,7 +504,28 @@ Hasl.GameInterface = function()
         }
         return undefined;
     }
+    
     that.draw = function() { mStage.draw(); }
+    
+    that.unitStackMouseHover = function(unitStackNode)
+    {
+        var unitPickerLayer = mUnitPickerLayer; //new Kinetic.Layer();
+        reinforcementPicker = Hasl.UnitPicker(unitStackNode.getUnitsInStack(), unitPickerLayer, mImageLoader);
+
+//        var unitPickerSize = reinforcementPicker.getDimensions();
+        //var pickerHolder = new Kinetic.Rect(
+        var unitStackNodePosition = unitStackNode.getPosition();
+        unitStackNodePosition.x += 14;
+        unitStackNodePosition.y += 14;
+        unitPickerLayer.setPosition(unitStackNodePosition);   
+        unitPickerLayer.draw();
+        //mStage.draw();
+    }
+    that.unitStackMouseOut = function()
+    {
+        mUnitPickerLayer.removeChildren();
+        mUnitPickerLayer.draw();
+    }
     
     return that;
 };

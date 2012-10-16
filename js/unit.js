@@ -222,9 +222,9 @@ function createUnitStack(unitStack, imageLoader, isSelectable)
             unit.setScale(scalars);
         }
     }
-
     stack.on('mousemove', function() {
         document.body.style.cursor = "pointer";
+        mGameInterface.unitStackMouseHover(stack);
     });
     stack.on('click', function() {
         var selectedStack = mGameInterface.getSelectedUnitStack()
@@ -260,7 +260,8 @@ function createUnitStack(unitStack, imageLoader, isSelectable)
         mGameInterface.setSelectedUnitStack(selectedStack);
     });
     stack.on('mouseout', function(){
-        document.body.style.cursor = "default"; 
+        document.body.style.cursor = "default";
+        mGameInterface.unitStackMouseOut(stack);
     });
 
     var stackLocation = mGameInterface.getHexCenter(unitStack.getLocation());
